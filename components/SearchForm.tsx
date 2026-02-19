@@ -1,7 +1,11 @@
 "use client";
 import { useState } from "react";
 
-export default function SearchForm() {
+type Props = {
+  onSubmit: (username: string) => void;
+};
+
+export default function SearchForm({ onSubmit }: Props) {
   const [username, setUsername] = useState("");
 
   return (
@@ -9,7 +13,7 @@ export default function SearchForm() {
       className="flex gap-2"
       onSubmit={(e) => {
         e.preventDefault();
-        console.log(username);
+        onSubmit(username);
       }}
     >
       <input
