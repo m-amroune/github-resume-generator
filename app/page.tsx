@@ -1,8 +1,17 @@
 "use client";
 import SearchForm from "@/components/SearchForm";
 
-function handleGenerate(username: string) {
-  console.log("PAGE RECEIVED:", username);
+async function handleGenerate(username: string) {
+  const res = await fetch(`https://api.github.com/users/${username}`);
+
+  if (!res.ok) {
+    console.log("User not found");
+    return;
+  }
+
+  const data = await res.json();
+
+  console.log(data);
 }
 
 export default function Home() {
