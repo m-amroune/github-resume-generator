@@ -24,6 +24,7 @@ type GitHubRepo = {
   stargazers_count: number;
   fork: boolean;
   language: string | null;
+  updated_at: string;
 };
 
 export default function Home() {
@@ -31,18 +32,23 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null);
   const [repos, setRepos] = useState<GitHubRepo[]>([]);
 
-  // Select meaningful repositories:
-  // - exclude forks
-  // - require description
-  // - require at least 1 star
-  // - sort by stars (desc)
-  // - keep first 6
-  const topRepos = repos
+  // Primary selection: non-fork repos with description and stars
+  const primaryRepos = repos
     .filter(
       (repo) => !repo.fork && repo.description && repo.stargazers_count > 0,
     )
     .sort((a, b) => b.stargazers_count - a.stargazers_count)
     .slice(0, 6);
+
+  // Fallback selection: non-fork repos with description, sorted by last update
+
+  const fallbackRepos = repos
+    .filter((repo) => !repo.fork && repo.description)
+    .sort((a, b) => Date.parse(b.updated_at) - Date.parse(a.updated_at))
+    .slice(0, 6);
+
+  // Use fallback when no starred repos match
+  const topRepos = primaryRepos.length > 0 ? primaryRepos : fallbackRepos;
 
   // Compute top languages from repositories
   const topLanguages = Object.entries(
@@ -99,6 +105,7 @@ export default function Home() {
         stargazers_count: repo.stargazers_count,
         fork: repo.fork,
         language: repo.language,
+        updated_at: repo.updated_at,
       })),
     );
   }
