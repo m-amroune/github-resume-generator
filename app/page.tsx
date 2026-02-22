@@ -27,12 +27,16 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null);
   const [repos, setRepos] = useState<GitHubRepo[]>([]);
 
-  // Select top repositories:
+  // Select meaningful repositories:
   // - exclude forks
+  // - require description
+  // - require at least 1 star
   // - sort by stars (desc)
   // - keep first 6
   const topRepos = repos
-    .filter((repo) => !repo.fork)
+    .filter(
+      (repo) => !repo.fork && repo.description && repo.stargazers_count > 0,
+    )
     .sort((a, b) => b.stargazers_count - a.stargazers_count)
     .slice(0, 6);
 
