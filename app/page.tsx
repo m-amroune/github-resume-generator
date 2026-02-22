@@ -4,12 +4,14 @@ import SearchForm from "@/components/SearchForm";
 import { useState } from "react";
 import Image from "next/image";
 
+//  user data used in the UI
 type GitHubUser = {
   login: string;
   avatar_url: string;
   html_url: string;
 };
 
+// repo data used for processing
 type GitHubRepo = {
   id: number;
   name: string;
@@ -22,10 +24,18 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null);
   const [repos, setRepos] = useState<GitHubRepo[]>([]);
 
+  // select top repositories by sort stars
+  const topRepos = repos
+    .filter((repo) => !repo.fork)
+    .sort((a, b) => b.stargazers_count - a.stargazers_count)
+    .slice(0, 6);
+
+  // Fetch user and repositories from GitHub API
   async function handleGenerate(username: string) {
     setError(null);
     setUser(null);
 
+    // Fetch user
     const res = await fetch(`https://api.github.com/users/${username}`);
 
     if (!res.ok) {
@@ -34,12 +44,15 @@ export default function Home() {
     }
 
     const data = await res.json();
+
+    // Map only required fields
     setUser({
       login: data.login,
       avatar_url: data.avatar_url,
       html_url: data.html_url,
     });
 
+    // Fetch repositories (max 100)
     const reposRes = await fetch(
       `https://api.github.com/users/${username}/repos?per_page=100&sort=updated`,
     );
@@ -55,7 +68,10 @@ export default function Home() {
 
       <SearchForm onSubmit={handleGenerate} />
 
+      {/* Error message */}
       {error && <p className="text-red-500">{error}</p>}
+
+      {/* User header */}
       {user && (
         <div className="flex items-center gap-4">
           <Image
@@ -78,7 +94,19 @@ export default function Home() {
           </div>
         </div>
       )}
+
+      {/* Repository count */}
       {repos.length > 0 && <p>{repos.length} repos found</p>}
+      {/* Top repository by stars  */}
+      {topRepos.length > 0 && (
+        <ul>
+          {topRepos.map((repo) => (
+            <li key={repo.id}>
+              {repo.name} ({repo.stargazers_count})
+            </li>
+          ))}
+        </ul>
+      )}
     </main>
   );
 }
