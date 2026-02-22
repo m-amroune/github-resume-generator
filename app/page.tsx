@@ -36,6 +36,18 @@ export default function Home() {
     .sort((a, b) => b.stargazers_count - a.stargazers_count)
     .slice(0, 6);
 
+  // Compute top languages from repositories
+  const topLanguages = Object.entries(
+    repos.reduce((acc: Record<string, number>, repo) => {
+      if (repo.language) {
+        acc[repo.language] = (acc[repo.language] || 0) + 1;
+      }
+      return acc;
+    }, {}),
+  )
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 5);
+
   // Fetch user and repositories from GitHub API
   async function handleGenerate(username: string) {
     setError(null);
@@ -111,7 +123,19 @@ export default function Home() {
           </div>
         </div>
       )}
-
+      {/* Top languages */}
+      {topLanguages.length > 0 && (
+        <div className="w-full max-w-xl">
+          <h2 className="font-semibold mb-2">Skills</h2>
+          <ul className="flex flex-wrap gap-2">
+            {topLanguages.map(([language, count]) => (
+              <li key={language} className="border px-2 py-1 text-sm rounded">
+                {language} ({count})
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
       {/* {/* Top repositories */}
       {repos.length > 0 && <p>{repos.length} repos found</p>}
       {/* Top repository by stars  */}
