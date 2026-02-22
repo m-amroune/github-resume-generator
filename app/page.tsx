@@ -19,6 +19,7 @@ type GitHubRepo = {
   html_url: string;
   stargazers_count: number;
   fork: boolean;
+  language: string | null;
 };
 
 export default function Home() {
@@ -73,6 +74,7 @@ export default function Home() {
         html_url: repo.html_url,
         stargazers_count: repo.stargazers_count,
         fork: repo.fork,
+        language: repo.language,
       })),
     );
   }
@@ -133,6 +135,9 @@ export default function Home() {
 
               {repo.description && (
                 <p className="text-sm text-gray-600 mt-2">{repo.description}</p>
+              )}
+              {repo.language && (
+                <p className="text-xs text-gray-500 mt-1">{repo.language}</p>
               )}
             </div>
           ))}
