@@ -11,10 +11,12 @@ type GitHubUser = {
   html_url: string;
 };
 
-// repo data used for processing
+// repo data used in the UI
 type GitHubRepo = {
   id: number;
   name: string;
+  description: string | null;
+  html_url: string;
   stargazers_count: number;
   fork: boolean;
 };
@@ -24,7 +26,10 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null);
   const [repos, setRepos] = useState<GitHubRepo[]>([]);
 
-  // select top repositories by sort stars
+  // Select top repositories:
+  // - exclude forks
+  // - sort by stars (desc)
+  // - keep first 6
   const topRepos = repos
     .filter((repo) => !repo.fork)
     .sort((a, b) => b.stargazers_count - a.stargazers_count)
@@ -59,7 +64,17 @@ export default function Home() {
 
     const reposData = await reposRes.json();
 
-    setRepos(reposData);
+    // Map only required repo fields
+    setRepos(
+      reposData.map((repo: any) => ({
+        id: repo.id,
+        name: repo.name,
+        description: repo.description,
+        html_url: repo.html_url,
+        stargazers_count: repo.stargazers_count,
+        fork: repo.fork,
+      })),
+    );
   }
 
   return (
@@ -95,17 +110,33 @@ export default function Home() {
         </div>
       )}
 
-      {/* Repository count */}
+      {/* {/* Top repositories */}
       {repos.length > 0 && <p>{repos.length} repos found</p>}
       {/* Top repository by stars  */}
       {topRepos.length > 0 && (
-        <ul>
+        <div className="w-full max-w-xl space-y-3">
           {topRepos.map((repo) => (
-            <li key={repo.id}>
-              {repo.name} ({repo.stargazers_count})
-            </li>
+            <div key={repo.id} className="border rounded p-3">
+              <div className="flex items-center justify-between gap-4">
+                <a
+                  href={repo.html_url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="underline font-medium"
+                >
+                  {repo.name}
+                </a>
+                <span className="text-sm text-gray-500">
+                  ⭐ {repo.stargazers_count}
+                </span>
+              </div>
+
+              {repo.description && (
+                <p className="text-sm text-gray-600 mt-2">{repo.description}</p>
+              )}
+            </div>
           ))}
-        </ul>
+        </div>
       )}
     </main>
   );
