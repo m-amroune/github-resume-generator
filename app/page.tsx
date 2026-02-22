@@ -9,6 +9,10 @@ type GitHubUser = {
   login: string;
   avatar_url: string;
   html_url: string;
+  name: string | null;
+  bio: string | null;
+  location: string | null;
+  company: string | null;
 };
 
 // repo data used in the UI
@@ -72,6 +76,10 @@ export default function Home() {
       login: data.login,
       avatar_url: data.avatar_url,
       html_url: data.html_url,
+      name: data.name,
+      bio: data.bio,
+      location: data.location,
+      company: data.company,
     });
 
     // Fetch repositories (max 100)
@@ -124,6 +132,19 @@ export default function Home() {
             >
               View GitHub profile
             </a>
+          </div>
+        </div>
+      )}
+      {/* About section */}
+      {user && (
+        <div className="w-full max-w-xl border rounded p-4">
+          {user.name && <h2 className="font-semibold text-lg">{user.name}</h2>}
+
+          {user.bio && <p className="text-sm mt-2">{user.bio}</p>}
+
+          <div className="text-sm text-gray-500 mt-2 space-y-1">
+            {user.location && <p>Location: {user.location}</p>}
+            {user.company && <p>Company: {user.company}</p>}
           </div>
         </div>
       )}
