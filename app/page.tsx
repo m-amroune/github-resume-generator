@@ -10,9 +10,17 @@ type GitHubUser = {
   html_url: string;
 };
 
+type GitHubRepo = {
+  id: number;
+  name: string;
+  stargazers_count: number;
+  fork: boolean;
+};
+
 export default function Home() {
   const [user, setUser] = useState<GitHubUser | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [repos, setRepos] = useState<GitHubRepo[]>([]);
 
   async function handleGenerate(username: string) {
     setError(null);
@@ -31,6 +39,14 @@ export default function Home() {
       avatar_url: data.avatar_url,
       html_url: data.html_url,
     });
+
+    const reposRes = await fetch(
+      `https://api.github.com/users/${username}/repos?per_page=100&sort=updated`,
+    );
+
+    const reposData = await reposRes.json();
+
+    setRepos(reposData);
   }
 
   return (
@@ -62,6 +78,7 @@ export default function Home() {
           </div>
         </div>
       )}
+      {repos.length > 0 && <p>{repos.length} repos found</p>}
     </main>
   );
 }
