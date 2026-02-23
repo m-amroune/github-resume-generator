@@ -125,105 +125,109 @@ export default function Home() {
   }
 
   return (
-    <main className="min-h-screen w-full flex flex-col items-center justify-center gap-6">
-      <h1 className="text-3xl font-semibold">GitHub Resume Generator</h1>
-      <button
-        onClick={() => window.print()}
-        className="border px-3 py-2 rounded text-sm"
-      >
-        Download PDF
-      </button>
+    <main className="min-h-screen bg-gray-50 py-10">
+      <div className="max-w-3xl mx-auto bg-white shadow p-8 space-y-8 text-center">
+        <h1 className="text-3xl font-semibold">GitHub Resume Generator</h1>
+        <button
+          onClick={() => window.print()}
+          className="border px-3 py-2 rounded text-sm"
+        >
+          Download PDF
+        </button>
 
-      <SearchForm onSubmit={handleGenerate} disabled={loading} />
+        <SearchForm onSubmit={handleGenerate} disabled={loading} />
 
-      {loading && <p className="text-gray-500">Loading...</p>}
+        {loading && <p className="text-gray-500">Loading...</p>}
 
-      {/* Error message */}
-      {error && <p className="text-red-500">{error}</p>}
+        {/* Error message */}
+        {error && <p className="text-red-500">{error}</p>}
 
-      {/* User header */}
-      {user && (
-        <div className="flex items-center gap-4">
-          <Image
-            src={user.avatar_url}
-            alt={`${user.login} avatar`}
-            width={64}
-            height={64}
-            className="rounded-full border"
-          />
-          <div className="flex flex-col">
-            <p className="font-semibold">{user.login}</p>
-            <a
-              href={user.html_url}
-              target="_blank"
-              rel="noreferrer"
-              className="underline text-sm"
-            >
-              View GitHub profile
-            </a>
-          </div>
-        </div>
-      )}
-
-      {/* About section */}
-      {user && (
-        <div className="w-full max-w-xl border rounded p-4">
-          {user.name && <h2 className="font-semibold text-lg">{user.name}</h2>}
-          {user.bio && <p className="text-sm mt-2">{user.bio}</p>}
-          <div className="text-sm text-gray-500 mt-2 space-y-1">
-            {user.location && <p>Location: {user.location}</p>}
-            {user.company && <p>Company: {user.company}</p>}
-          </div>
-        </div>
-      )}
-
-      {/* Skills */}
-      {topLanguages.length > 0 && (
-        <div className="w-full max-w-xl">
-          <h2 className="font-semibold mb-2">Skills</h2>
-          <ul className="flex flex-wrap gap-2">
-            {topLanguages.map(([language, count]) => (
-              <li key={language} className="border px-2 py-1 text-sm rounded">
-                {language} ({count})
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-
-      {/* Repository count */}
-      {repos.length > 0 && <p>{repos.length} repos found</p>}
-
-      {/* Top repositories */}
-      {topRepos.length > 0 && (
-        <div className="w-full max-w-xl space-y-3">
-          {topRepos.map((repo) => (
-            <div key={repo.id} className="border rounded p-3">
-              <div className="flex items-center justify-between gap-4">
-                <a
-                  href={repo.html_url}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="underline font-medium"
-                >
-                  {repo.name}
-                </a>
-                <span className="text-sm text-gray-500">
-                  ⭐ {repo.stargazers_count}
-                </span>
-              </div>
-
-              {repo.description && (
-                <p className="text-sm text-gray-600 mt-2">{repo.description}</p>
-              )}
-
-              {repo.language && (
-                <p className="text-xs text-gray-500 mt-1">{repo.language}</p>
-              )}
+        {/* User header */}
+        {user && (
+          <div className="flex items-center justify-center gap-4">
+            <Image
+              src={user.avatar_url}
+              alt={`${user.login} avatar`}
+              width={64}
+              height={64}
+              className="rounded-full border"
+            />
+            <div className="flex flex-col">
+              <p className="font-semibold">{user.login}</p>
+              <a
+                href={user.html_url}
+                target="_blank"
+                rel="noreferrer"
+                className="underline text-sm"
+              >
+                View GitHub profile
+              </a>
             </div>
-          ))}
-        </div>
-      )}
+          </div>
+        )}
+
+        {/* About section */}
+        {user && (
+          <div className="w-full border rounded p-4">
+            {user.name && <h2 className="font-semibold mb-2">{user.name}</h2>}
+            {user.bio && <p className="text-sm mt-2">{user.bio}</p>}
+            <div className="text-sm text-gray-500 mt-2 space-y-1">
+              {user.location && <p>Location: {user.location}</p>}
+              {user.company && <p>Company: {user.company}</p>}
+            </div>
+          </div>
+        )}
+
+        {/* Skills */}
+        {topLanguages.length > 0 && (
+          <div className="w-full">
+            <h2 className="font-semibold mb-2">Skills</h2>
+            <ul className="flex flex-wrap gap-2">
+              {topLanguages.map(([language, count]) => (
+                <li key={language} className="border px-2 py-1 text-sm rounded">
+                  {language} ({count})
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {/* Repository count */}
+        {repos.length > 0 && <p>{repos.length} repos found</p>}
+
+        {/* Top repositories */}
+        {topRepos.length > 0 && (
+          <div className="w-full  space-y-3">
+            {topRepos.map((repo) => (
+              <div key={repo.id} className="border rounded p-4 bg-gray-50">
+                <div className="flex items-center justify-between gap-4">
+                  <a
+                    href={repo.html_url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="underline font-medium"
+                  >
+                    {repo.name}
+                  </a>
+                  <span className="text-sm text-gray-500">
+                    ⭐ {repo.stargazers_count}
+                  </span>
+                </div>
+
+                {repo.description && (
+                  <p className="text-sm text-gray-600 mt-2">
+                    {repo.description}
+                  </p>
+                )}
+
+                {repo.language && (
+                  <p className="text-xs text-gray-500 mt-1">{repo.language}</p>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </main>
   );
 }

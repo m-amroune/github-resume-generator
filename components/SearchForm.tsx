@@ -11,7 +11,7 @@ export default function SearchForm({ onSubmit, disabled }: Props) {
 
   return (
     <form
-      className="flex gap-2"
+      className="flex items-center justify-center gap-2"
       onSubmit={(e) => {
         e.preventDefault();
         onSubmit(username);
