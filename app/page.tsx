@@ -127,6 +127,12 @@ export default function Home() {
   return (
     <main className="min-h-screen w-full flex flex-col items-center justify-center gap-6">
       <h1 className="text-3xl font-semibold">GitHub Resume Generator</h1>
+      <button
+        onClick={() => window.print()}
+        className="border px-3 py-2 rounded text-sm"
+      >
+        Download PDF
+      </button>
 
       <SearchForm onSubmit={handleGenerate} disabled={loading} />
 

@@ -32,3 +32,13 @@ body {
   margin: 0;
   padding: 0;
 }
+
+@media print {
+  button {
+    display: none;
+  }
+
+  input {
+    display: none;
+  }
+}
