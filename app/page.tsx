@@ -31,6 +31,7 @@ export default function Home() {
   const [user, setUser] = useState<GitHubUser | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [repos, setRepos] = useState<GitHubRepo[]>([]);
+  const [loading, setLoading] = useState(false);
 
   // Primary selection: non-fork repos with description and stars
   const primaryRepos = repos
@@ -64,6 +65,7 @@ export default function Home() {
 
   // Fetch user and repositories from GitHub API
   async function handleGenerate(username: string) {
+    setLoading(true);
     setError(null);
     setUser(null);
 
@@ -72,6 +74,7 @@ export default function Home() {
 
     if (!res.ok) {
       setError("User not found");
+      setLoading(false);
       return;
     }
 
@@ -108,14 +111,15 @@ export default function Home() {
         updated_at: repo.updated_at,
       })),
     );
+    setLoading(false);
   }
 
   return (
     <main className="min-h-screen w-full flex flex-col items-center justify-center gap-6">
       <h1 className="text-3xl font-semibold">GitHub Resume Generator</h1>
 
-      <SearchForm onSubmit={handleGenerate} />
-
+      <SearchForm onSubmit={handleGenerate} disabled={loading} />
+      {loading && <p className="text-gray-500">Loading...</p>}
       {/* Error message */}
       {error && <p className="text-red-500">{error}</p>}
 

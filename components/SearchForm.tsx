@@ -3,9 +3,10 @@ import { useState } from "react";
 
 type Props = {
   onSubmit: (username: string) => void;
+  disabled?: boolean;
 };
 
-export default function SearchForm({ onSubmit }: Props) {
+export default function SearchForm({ onSubmit, disabled }: Props) {
   const [username, setUsername] = useState("");
 
   return (
@@ -22,7 +23,9 @@ export default function SearchForm({ onSubmit }: Props) {
         value={username}
         onChange={(e) => setUsername(e.target.value)}
       />
-      <button className="border px-3 py-2 rounded">Generate</button>
+      <button disabled={disabled} className="border px-3 py-2 rounded">
+        Generate
+      </button>
     </form>
   );
 }
