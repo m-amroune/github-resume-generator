@@ -4,7 +4,7 @@ import SearchForm from "@/components/SearchForm";
 import { useState } from "react";
 import Image from "next/image";
 
-//  user data used in the UI
+// User data used in the UI
 type GitHubUser = {
   login: string;
   avatar_url: string;
@@ -15,7 +15,7 @@ type GitHubUser = {
   company: string | null;
 };
 
-// repo data used in the UI
+// Repository data used in the UI
 type GitHubRepo = {
   id: number;
   name: string;
@@ -33,7 +33,7 @@ export default function Home() {
   const [repos, setRepos] = useState<GitHubRepo[]>([]);
   const [loading, setLoading] = useState(false);
 
-  // Primary selection: non-fork repos with description and stars
+  // Primary selection: non-fork, with description and stars
   const primaryRepos = repos
     .filter(
       (repo) => !repo.fork && repo.description && repo.stargazers_count > 0,
@@ -41,14 +41,13 @@ export default function Home() {
     .sort((a, b) => b.stargazers_count - a.stargazers_count)
     .slice(0, 6);
 
-  // Fallback selection: non-fork repos with description, sorted by last update
-
+  // Fallback selection: non-fork with description, sorted by update date
   const fallbackRepos = repos
     .filter((repo) => !repo.fork && repo.description)
     .sort((a, b) => Date.parse(b.updated_at) - Date.parse(a.updated_at))
     .slice(0, 6);
 
-  // Use fallback when no starred repos match
+  // Use fallback if no starred repos match
   const topRepos = primaryRepos.length > 0 ? primaryRepos : fallbackRepos;
 
   // Compute top languages from repositories
@@ -73,14 +72,18 @@ export default function Home() {
     const res = await fetch(`https://api.github.com/users/${username}`);
 
     if (!res.ok) {
-      setError("User not found");
+      if (res.status === 403) {
+        setError("GitHub API rate limit exceeded");
+      } else {
+        setError("User not found");
+      }
       setLoading(false);
       return;
     }
 
     const data = await res.json();
 
-    // Map only required fields
+    // Map required user fields
     setUser({
       login: data.login,
       avatar_url: data.avatar_url,
@@ -96,9 +99,15 @@ export default function Home() {
       `https://api.github.com/users/${username}/repos?per_page=100&sort=updated`,
     );
 
+    if (!reposRes.ok) {
+      setError("Failed to fetch repositories");
+      setLoading(false);
+      return;
+    }
+
     const reposData = await reposRes.json();
 
-    // Map only required repo fields
+    // Map required repository fields
     setRepos(
       reposData.map((repo: any) => ({
         id: repo.id,
@@ -111,6 +120,7 @@ export default function Home() {
         updated_at: repo.updated_at,
       })),
     );
+
     setLoading(false);
   }
 
@@ -119,7 +129,9 @@ export default function Home() {
       <h1 className="text-3xl font-semibold">GitHub Resume Generator</h1>
 
       <SearchForm onSubmit={handleGenerate} disabled={loading} />
+
       {loading && <p className="text-gray-500">Loading...</p>}
+
       {/* Error message */}
       {error && <p className="text-red-500">{error}</p>}
 
@@ -146,20 +158,20 @@ export default function Home() {
           </div>
         </div>
       )}
+
       {/* About section */}
       {user && (
         <div className="w-full max-w-xl border rounded p-4">
           {user.name && <h2 className="font-semibold text-lg">{user.name}</h2>}
-
           {user.bio && <p className="text-sm mt-2">{user.bio}</p>}
-
           <div className="text-sm text-gray-500 mt-2 space-y-1">
             {user.location && <p>Location: {user.location}</p>}
             {user.company && <p>Company: {user.company}</p>}
           </div>
         </div>
       )}
-      {/* Top languages */}
+
+      {/* Skills */}
       {topLanguages.length > 0 && (
         <div className="w-full max-w-xl">
           <h2 className="font-semibold mb-2">Skills</h2>
@@ -172,9 +184,11 @@ export default function Home() {
           </ul>
         </div>
       )}
-      {/* {/* Top repositories */}
+
+      {/* Repository count */}
       {repos.length > 0 && <p>{repos.length} repos found</p>}
-      {/* Top repository by stars  */}
+
+      {/* Top repositories */}
       {topRepos.length > 0 && (
         <div className="w-full max-w-xl space-y-3">
           {topRepos.map((repo) => (
@@ -196,6 +210,7 @@ export default function Home() {
               {repo.description && (
                 <p className="text-sm text-gray-600 mt-2">{repo.description}</p>
               )}
+
               {repo.language && (
                 <p className="text-xs text-gray-500 mt-1">{repo.language}</p>
               )}
