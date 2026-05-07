@@ -105,11 +105,11 @@ export default function Home() {
       return;
     }
 
-    const reposData = await reposRes.json();
+    const reposData: GitHubRepo[] = await reposRes.json();
 
     // Map required repository fields
     setRepos(
-      reposData.map((repo: any) => ({
+      reposData.map((repo) => ({
         id: repo.id,
         name: repo.name,
         description: repo.description,
