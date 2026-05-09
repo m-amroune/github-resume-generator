@@ -63,66 +63,28 @@ export default function Home() {
     .slice(0, 5);
 
   // Fetch user and repositories from GitHub API
-  async function handleGenerate(username: string) {
+  const handleGenerate = async (username: string) => {
     setLoading(true);
     setError(null);
-    setUser(null);
 
-    // Fetch user
-    const res = await fetch(`https://api.github.com/users/${username}`);
+    try {
+      const res = await fetch(`/api/resume/${username}`);
+      const data = await res.json();
 
-    if (!res.ok) {
-      if (res.status === 403) {
-        setError("GitHub API rate limit exceeded");
-      } else {
-        setError("User not found");
+      if (!res.ok) {
+        setError(data.error || "Error");
+        setLoading(false);
+        return;
       }
+
+      setUser(data.user);
+      setRepos(data.repos);
+    } catch {
+      setError("Server error");
+    } finally {
       setLoading(false);
-      return;
     }
-
-    const data = await res.json();
-
-    // Map required user fields
-    setUser({
-      login: data.login,
-      avatar_url: data.avatar_url,
-      html_url: data.html_url,
-      name: data.name,
-      bio: data.bio,
-      location: data.location,
-      company: data.company,
-    });
-
-    // Fetch repositories (max 100)
-    const reposRes = await fetch(
-      `https://api.github.com/users/${username}/repos?per_page=100&sort=updated`,
-    );
-
-    if (!reposRes.ok) {
-      setError("Failed to fetch repositories");
-      setLoading(false);
-      return;
-    }
-
-    const reposData: GitHubRepo[] = await reposRes.json();
-
-    // Map required repository fields
-    setRepos(
-      reposData.map((repo) => ({
-        id: repo.id,
-        name: repo.name,
-        description: repo.description,
-        html_url: repo.html_url,
-        stargazers_count: repo.stargazers_count,
-        fork: repo.fork,
-        language: repo.language,
-        updated_at: repo.updated_at,
-      })),
-    );
-
-    setLoading(false);
-  }
+  };
 
   return (
     <main className="min-h-screen bg-gray-50 py-10">

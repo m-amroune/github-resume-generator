@@ -39,7 +39,7 @@ export async function GET(
 
     // return data
     return NextResponse.json({ user, repos });
-  } catch (error) {
+  } catch {
     // fallback
     return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
