@@ -10,11 +10,20 @@ const SearchForm: React.FC<SearchFormProps> = ({ onSubmit, disabled }) => {
   const [username, setUsername] = useState("");
   const [error, setError] = useState<string | null>(null);
 
-  //  username validation
+  // advanced GitHub username validation
   const isValidUsername = (value: string) => {
-    if (!value.trim()) return false; // empty
-    if (/\s/.test(value)) return false; // spaces
-    if (!/^[a-zA-Z0-9-]+$/.test(value)) return false; // invalid chars
+    const v = value.trim();
+
+    if (!v) return false; // empty
+    if (/\s/.test(v)) return false; // spaces
+    if (!/^[a-zA-Z0-9-]+$/.test(v)) return false; // invalid chars
+
+    if (v.startsWith("-")) return false; // cannot start with -
+    if (v.endsWith("-")) return false; // cannot end with -
+    if (v.includes("--")) return false; // no consecutive --
+
+    if (v.length > 39) return false; // GitHub max length
+
     return true;
   };
 
