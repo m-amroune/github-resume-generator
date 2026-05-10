@@ -95,8 +95,11 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-gray-50 py-10">
-      <div className="max-w-3xl mx-auto bg-white shadow p-8 space-y-8 text-center">
-        <h1 className="text-3xl font-semibold">GitHub Resume Generator</h1>
+      <div className="max-w-3xl mx-auto bg-white shadow-lg rounded-lg p-10 space-y-10 text-center">
+        <h1 className="text-4xl font-bold tracking-tight">
+          GitHub Resume Generator
+        </h1>
+
         <button
           onClick={() => window.print()}
           className="border px-3 py-2 rounded text-sm"
@@ -113,7 +116,7 @@ export default function Home() {
 
         {/* User header */}
         {user && (
-          <div className="flex items-center justify-center gap-4">
+          <div className="flex items-center justify-center gap-6">
             <Image
               src={user.avatar_url}
               alt={`${user.login} avatar`}
@@ -122,7 +125,8 @@ export default function Home() {
               className="rounded-full border"
             />
             <div className="flex flex-col">
-              <p className="font-semibold">{user.login}</p>
+              <p className="font-semibold text-lg">{user.login}</p>
+
               <a
                 href={user.html_url}
                 target="_blank"
@@ -137,7 +141,7 @@ export default function Home() {
 
         {/* About section */}
         {user && (
-          <div className="w-full border rounded p-4">
+          <div className="w-full border rounded-lg p-6 bg-gray-50 text-left">
             {user.name && <h2 className="font-semibold mb-2">{user.name}</h2>}
             {user.bio && <p className="text-sm mt-2">{user.bio}</p>}
             <div className="text-sm text-gray-500 mt-2 space-y-1">
@@ -151,9 +155,12 @@ export default function Home() {
         {topLanguages.length > 0 && (
           <div className="w-full">
             <h2 className="font-semibold mb-2">Skills</h2>
-            <ul className="flex flex-wrap gap-2">
+            <ul className="flex flex-wrap gap-3 justify-center">
               {topLanguages.map(([language, count]) => (
-                <li key={language} className="border px-2 py-1 text-sm rounded">
+                <li
+                  key={language}
+                  className="border px-3 py-1.5 text-sm rounded-md bg-gray-100"
+                >
                   {language} ({count})
                 </li>
               ))}
@@ -168,13 +175,16 @@ export default function Home() {
         {topRepos.length > 0 && (
           <div className="w-full  space-y-3">
             {topRepos.map((repo) => (
-              <div key={repo.id} className="border rounded p-4 bg-gray-50">
+              <div
+                key={repo.id}
+                className="border rounded-lg p-5 bg-gray-50 hover:bg-gray-100 transition"
+              >
                 <div className="flex items-center justify-between gap-4">
                   <a
                     href={repo.html_url}
                     target="_blank"
                     rel="noreferrer"
-                    className="underline font-medium"
+                    className="underline font-semibold text-lg"
                   >
                     {repo.name}
                   </a>
