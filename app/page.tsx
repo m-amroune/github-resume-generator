@@ -27,6 +27,11 @@ type GitHubRepo = {
   updated_at: string;
 };
 
+type ResumeResponse = {
+  user: GitHubUser;
+  repos: GitHubRepo[];
+};
+
 export default function Home() {
   const [user, setUser] = useState<GitHubUser | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -69,13 +74,15 @@ export default function Home() {
 
     try {
       const res = await fetch(`/api/resume/${username}`);
-      const data = await res.json();
 
       if (!res.ok) {
-        setError(data.error || "Error");
+        const data = (await res.json()) as { error?: string };
+        setError(data.error ?? "Error");
         setLoading(false);
         return;
       }
+
+      const data: ResumeResponse = await res.json();
 
       setUser(data.user);
       setRepos(data.repos);
