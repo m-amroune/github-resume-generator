@@ -1,12 +1,12 @@
 "use client";
 import { useState } from "react";
 
-type Props = {
+type SearchFormProps = {
   onSubmit: (username: string) => void;
-  disabled?: boolean;
+  disabled: boolean;
 };
 
-export default function SearchForm({ onSubmit, disabled }: Props) {
+const SearchForm: React.FC<SearchFormProps> = ({ onSubmit, disabled }) => {
   const [username, setUsername] = useState("");
 
   return (
@@ -28,4 +28,6 @@ export default function SearchForm({ onSubmit, disabled }: Props) {
       </button>
     </form>
   );
-}
+};
+
+export default SearchForm;
