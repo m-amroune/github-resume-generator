@@ -110,28 +110,31 @@ export default function Home() {
         <SearchForm onSubmit={handleGenerate} disabled={loading} />
 
         {loading && <p className="text-gray-500">Loading...</p>}
-
-        {/* Error message */}
         {error && <p className="text-red-500">{error}</p>}
 
         {/* User header */}
         {user && (
-          <div className="flex items-center justify-center gap-6">
+          <div className="flex items-center justify-center gap-6 border rounded-xl p-6 bg-gray-50 shadow-sm">
             <Image
               src={user.avatar_url}
               alt={`${user.login} avatar`}
-              width={64}
-              height={64}
+              width={80}
+              height={80}
               className="rounded-full border"
             />
-            <div className="flex flex-col">
-              <p className="font-semibold text-lg">{user.login}</p>
+
+            <div className="flex flex-col space-y-1 text-center">
+              <p className="font-semibold text-2xl">{user.login}</p>
+
+              {user.name && (
+                <p className="text-sm text-gray-700">{user.name}</p>
+              )}
 
               <a
                 href={user.html_url}
                 target="_blank"
                 rel="noreferrer"
-                className="underline text-sm"
+                className="underline text-base text-blue-600"
               >
                 View GitHub profile
               </a>
@@ -139,27 +142,36 @@ export default function Home() {
           </div>
         )}
 
+        <div className="border-t border-gray-200 my-8"></div>
+
         {/* About section */}
         {user && (
-          <div className="w-full border rounded-lg p-6 bg-gray-50 text-left">
-            {user.name && <h2 className="font-semibold mb-2">{user.name}</h2>}
-            {user.bio && <p className="text-sm mt-2">{user.bio}</p>}
-            <div className="text-sm text-gray-500 mt-2 space-y-1">
+          <div className="w-full border rounded-xl p-6 bg-gray-50 text-left shadow-sm space-y-3">
+            {user.name && (
+              <h2 className="font-semibold text-xl">{user.name}</h2>
+            )}
+
+            {user.bio && <p className="text-base mt-2">{user.bio}</p>}
+
+            <div className="text-base text-gray-500 mt-2 space-y-1">
               {user.location && <p>Location: {user.location}</p>}
               {user.company && <p>Company: {user.company}</p>}
             </div>
           </div>
         )}
 
+        <div className="border-t border-gray-200 my-8"></div>
+
         {/* Skills */}
         {topLanguages.length > 0 && (
-          <div className="w-full">
-            <h2 className="font-semibold mb-2">Skills</h2>
+          <div className="w-full border rounded-xl p-6 bg-gray-50 shadow-sm space-y-3">
+            <h2 className="font-semibold text-xl mb-2">Skills</h2>
+
             <ul className="flex flex-wrap gap-3 justify-center">
               {topLanguages.map(([language, count]) => (
                 <li
                   key={language}
-                  className="border px-3 py-1.5 text-sm rounded-md bg-gray-100"
+                  className="border px-3 py-1.5 text-base rounded-md bg-gray-100"
                 >
                   {language} ({count})
                 </li>
@@ -168,39 +180,46 @@ export default function Home() {
           </div>
         )}
 
+        <div className="border-t border-gray-200 my-8"></div>
+
         {/* Repository count */}
         {repos.length > 0 && <p>{repos.length} repos found</p>}
 
         {/* Top repositories */}
         {topRepos.length > 0 && (
-          <div className="w-full  space-y-3">
+          <div className="w-full border rounded-xl p-6 bg-gray-50 shadow-sm space-y-3">
+            <h2 className="font-semibold text-xl">Top Repositories</h2>
+
             {topRepos.map((repo) => (
               <div
                 key={repo.id}
-                className="border rounded-lg p-5 bg-gray-50 hover:bg-gray-100 transition"
+                className="border rounded-xl p-6 bg-white shadow-sm hover:shadow-md transition-all duration-200 space-y-3"
               >
                 <div className="flex items-center justify-between gap-4">
                   <a
                     href={repo.html_url}
                     target="_blank"
                     rel="noreferrer"
-                    className="underline font-semibold text-lg"
+                    className="underline font-semibold text-xl"
                   >
                     {repo.name}
                   </a>
-                  <span className="text-sm text-gray-500">
+
+                  <span className="text-sm text-gray-600">
                     ⭐ {repo.stargazers_count}
                   </span>
                 </div>
 
                 {repo.description && (
-                  <p className="text-sm text-gray-600 mt-2">
+                  <p className="text-base text-gray-700 leading-relaxed">
                     {repo.description}
                   </p>
                 )}
 
                 {repo.language && (
-                  <p className="text-xs text-gray-500 mt-1">{repo.language}</p>
+                  <span className="inline-block px-2 py-0.5 text-xs font-medium bg-gray-200 text-gray-800 rounded">
+                    {repo.language}
+                  </span>
                 )}
               </div>
             ))}
