@@ -32,6 +32,17 @@ type ResumeResponse = {
   repos: GitHubRepo[];
 };
 
+// function that calculates how many days passed since the repo was updated
+const getDaysAgo = (dateString: string): string => {
+  const updated = new Date(dateString).getTime();
+  const now = Date.now();
+  const diff = Math.floor((now - updated) / (1000 * 60 * 60 * 24));
+
+  if (diff === 0) return "Updated today";
+  if (diff === 1) return "Updated 1 day ago";
+  return `Updated ${diff} days ago`;
+};
+
 export default function Home() {
   const [user, setUser] = useState<GitHubUser | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -215,6 +226,10 @@ export default function Home() {
                     {repo.description}
                   </p>
                 )}
+
+                <p className="text-xs text-gray-500">
+                  {getDaysAgo(repo.updated_at)}
+                </p>
 
                 {repo.language && (
                   <span className="inline-block px-2 py-0.5 text-xs font-medium bg-gray-200 text-gray-800 rounded">
