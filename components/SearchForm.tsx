@@ -44,7 +44,7 @@ const SearchForm: React.FC<SearchFormProps> = ({ onSubmit, disabled }) => {
       }}
     >
       <input
-        placeholder="GitHub username"
+        placeholder="Enter a GitHub username..."
         className="border px-3 py-2 rounded"
         value={username}
         onChange={(e) => setUsername(e.target.value)}

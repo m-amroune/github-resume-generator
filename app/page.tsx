@@ -125,6 +125,7 @@ export default function Home() {
         <SearchForm onSubmit={handleGenerate} disabled={loading} />
 
         {loading && <p className="text-gray-500">Loading...</p>}
+
         {error && <p className="text-red-500">{error}</p>}
 
         {/* User header */}
