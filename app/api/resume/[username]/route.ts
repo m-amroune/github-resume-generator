@@ -58,7 +58,10 @@ export async function GET(
     const reposRes = await fetch(
       `https://api.github.com/users/${username}/repos?per_page=100`,
       {
-        headers: { "User-Agent": "github-resume-generator" },
+        headers: {
+          "User-Agent": "github-resume-generator",
+        },
+
         cache: "no-store",
       },
     );

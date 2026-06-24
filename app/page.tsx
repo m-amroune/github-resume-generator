@@ -110,13 +110,17 @@ export default function Home() {
         <h1 className="text-4xl font-bold tracking-tight">
           GitHub Resume Generator
         </h1>
-
-        <button
-          onClick={() => window.print()}
-          className="border px-3 py-2 rounded text-sm"
-        >
-          Download PDF
-        </button>
+        <p className="text-sm text-gray-500">
+          Generate a resume from a GitHub profile.
+        </p>
+        {user && (
+          <button
+            onClick={() => window.print()}
+            className="border px-3 py-2 rounded text-sm"
+          >
+            Download PDF
+          </button>
+        )}
 
         <SearchForm onSubmit={handleGenerate} disabled={loading} />
 

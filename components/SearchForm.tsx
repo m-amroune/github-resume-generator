@@ -50,8 +50,11 @@ const SearchForm: React.FC<SearchFormProps> = ({ onSubmit, disabled }) => {
         onChange={(e) => setUsername(e.target.value)}
       />
 
-      <button disabled={disabled} className="border px-3 py-2 rounded">
-        Generate
+      <button
+        disabled={disabled}
+        className="border px-3 py-2 rounded cursor-pointer"
+      >
+        Generate resume
       </button>
 
       {error && <p className="text-red-500 text-sm">{error}</p>}
