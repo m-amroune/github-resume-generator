@@ -105,14 +105,26 @@ export default function Home() {
   };
 
   return (
-    <main className="min-h-screen bg-gray-50 py-10">
-      <div className="max-w-3xl mx-auto bg-white shadow-lg rounded-lg p-10 space-y-10 text-center">
-        <h1 className="text-4xl font-bold tracking-tight">
-          GitHub Resume Generator
-        </h1>
-        <p className="text-sm text-gray-500">
-          Generate a resume from a GitHub profile.
-        </p>
+    <main className="min-h-screen bg-[#f3f1ec] px-4 py-10">
+      <div className="mx-auto max-w-4xl space-y-8">
+        <section className="rounded-2xl bg-[#24324a] px-6 py-16 text-center text-white shadow-lg sm:px-10 sm:py-20">
+          <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
+            GitHub Resume Generator
+          </h1>
+
+          <p className="mt-3 text-sm text-slate-300">
+            Generate a resume from a GitHub profile.
+          </p>
+
+          <div className="mt-6">
+            <SearchForm onSubmit={handleGenerate} disabled={loading} />
+          </div>
+
+          {loading && <p className="mt-4 text-slate-300">Loading...</p>}
+
+          {error && <p className="mt-4 text-red-300">{error}</p>}
+        </section>
+
         {user && (
           <button
             onClick={() => window.print()}
@@ -122,127 +134,125 @@ export default function Home() {
           </button>
         )}
 
-        <SearchForm onSubmit={handleGenerate} disabled={loading} />
-
-        {loading && <p className="text-gray-500">Loading...</p>}
-
-        {error && <p className="text-red-500">{error}</p>}
-
-        {/* User header */}
         {user && (
-          <div className="flex items-center justify-center gap-6 border rounded-xl p-6 bg-gray-50 shadow-sm">
-            <Image
-              src={user.avatar_url}
-              alt={`${user.login} avatar`}
-              width={80}
-              height={80}
-              className="rounded-full border"
-            />
+          <div className="rounded-2xl bg-white p-10 text-center shadow-lg">
+            {/* User header */}
+            {user && (
+              <div className="flex items-center justify-center gap-6 border rounded-xl p-6 bg-gray-50 shadow-sm">
+                <Image
+                  src={user.avatar_url}
+                  alt={`${user.login} avatar`}
+                  width={80}
+                  height={80}
+                  className="rounded-full border"
+                />
 
-            <div className="flex flex-col space-y-1 text-center">
-              <p className="font-semibold text-2xl">{user.login}</p>
+                <div className="flex flex-col space-y-1 text-center">
+                  <p className="font-semibold text-2xl">{user.login}</p>
 
-              {user.name && (
-                <p className="text-sm text-gray-700">{user.name}</p>
-              )}
+                  {user.name && (
+                    <p className="text-sm text-gray-700">{user.name}</p>
+                  )}
 
-              <a
-                href={user.html_url}
-                target="_blank"
-                rel="noreferrer"
-                className="underline text-base text-blue-600"
-              >
-                View GitHub profile
-              </a>
-            </div>
-          </div>
-        )}
-
-        <div className="border-t border-gray-200 my-8"></div>
-
-        {/* About section */}
-        {user && (
-          <div className="w-full border rounded-xl p-6 bg-gray-50 text-left shadow-sm space-y-3">
-            {user.name && (
-              <h2 className="font-semibold text-xl">{user.name}</h2>
-            )}
-
-            {user.bio && <p className="text-base mt-2">{user.bio}</p>}
-
-            <div className="text-base text-gray-500 mt-2 space-y-1">
-              {user.location && <p>Location: {user.location}</p>}
-              {user.company && <p>Company: {user.company}</p>}
-            </div>
-          </div>
-        )}
-
-        <div className="border-t border-gray-200 my-8"></div>
-
-        {/* Skills */}
-        {topLanguages.length > 0 && (
-          <div className="w-full border rounded-xl p-6 bg-gray-50 shadow-sm space-y-3">
-            <h2 className="font-semibold text-xl mb-2">Skills</h2>
-
-            <ul className="flex flex-wrap gap-3 justify-center">
-              {topLanguages.map(([language, count]) => (
-                <li
-                  key={language}
-                  className="border px-3 py-1.5 text-base rounded-md bg-gray-100"
-                >
-                  {language} ({count})
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-
-        <div className="border-t border-gray-200 my-8"></div>
-
-        {/* Repository count */}
-        {repos.length > 0 && <p>{repos.length} repos found</p>}
-
-        {/* Top repositories */}
-        {topRepos.length > 0 && (
-          <div className="w-full border rounded-xl p-6 bg-gray-50 shadow-sm space-y-3">
-            <h2 className="font-semibold text-xl">Top Repositories</h2>
-
-            {topRepos.map((repo) => (
-              <div
-                key={repo.id}
-                className="border rounded-xl p-6 bg-white shadow-sm hover:shadow-md transition-all duration-200 space-y-3"
-              >
-                <div className="flex items-center justify-between gap-4">
                   <a
-                    href={repo.html_url}
+                    href={user.html_url}
                     target="_blank"
                     rel="noreferrer"
-                    className="underline font-semibold text-xl"
+                    className="underline text-base text-blue-600"
                   >
-                    {repo.name}
+                    View GitHub profile
                   </a>
-
-                  <span className="text-sm text-gray-600">
-                    ⭐ {repo.stargazers_count}
-                  </span>
                 </div>
-
-                {repo.description && (
-                  <p className="text-base text-gray-700 leading-relaxed">
-                    {repo.description}
-                  </p>
-                )}
-
-                <p className="text-xs text-gray-500">
-                  {getDaysAgo(repo.updated_at)}
-                </p>
-
-                {repo.language && (
-                  <span className="inline-block px-2 py-0.5 text-xs font-medium bg-gray-200 text-gray-800 rounded">
-                    {repo.language}
-                  </span>
-                )}
               </div>
-            ))}
+            )}
+
+            <div className="border-t border-gray-200 my-8"></div>
+
+            {/* About section */}
+            {user && (
+              <div className="w-full border rounded-xl p-6 bg-gray-50 text-left shadow-sm space-y-3">
+                {user.name && (
+                  <h2 className="font-semibold text-xl">{user.name}</h2>
+                )}
+
+                {user.bio && <p className="text-base mt-2">{user.bio}</p>}
+
+                <div className="text-base text-gray-500 mt-2 space-y-1">
+                  {user.location && <p>Location: {user.location}</p>}
+                  {user.company && <p>Company: {user.company}</p>}
+                </div>
+              </div>
+            )}
+
+            <div className="border-t border-gray-200 my-8"></div>
+
+            {/* Skills */}
+            {topLanguages.length > 0 && (
+              <div className="w-full border rounded-xl p-6 bg-gray-50 shadow-sm space-y-3">
+                <h2 className="font-semibold text-xl mb-2">Skills</h2>
+
+                <ul className="flex flex-wrap gap-3 justify-center">
+                  {topLanguages.map(([language, count]) => (
+                    <li
+                      key={language}
+                      className="border px-3 py-1.5 text-base rounded-md bg-gray-100"
+                    >
+                      {language} ({count})
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            <div className="border-t border-gray-200 my-8"></div>
+
+            {/* Repository count */}
+            {repos.length > 0 && <p>{repos.length} repos found</p>}
+
+            {/* Top repositories */}
+            {topRepos.length > 0 && (
+              <div className="w-full border rounded-xl p-6 bg-gray-50 shadow-sm space-y-3">
+                <h2 className="font-semibold text-xl">Top Repositories</h2>
+
+                {topRepos.map((repo) => (
+                  <div
+                    key={repo.id}
+                    className="border rounded-xl p-6 bg-white shadow-sm hover:shadow-md transition-all duration-200 space-y-3"
+                  >
+                    <div className="flex items-center justify-between gap-4">
+                      <a
+                        href={repo.html_url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="underline font-semibold text-xl"
+                      >
+                        {repo.name}
+                      </a>
+
+                      <span className="text-sm text-gray-600">
+                        ⭐ {repo.stargazers_count}
+                      </span>
+                    </div>
+
+                    {repo.description && (
+                      <p className="text-base text-gray-700 leading-relaxed">
+                        {repo.description}
+                      </p>
+                    )}
+
+                    <p className="text-xs text-gray-500">
+                      {getDaysAgo(repo.updated_at)}
+                    </p>
+
+                    {repo.language && (
+                      <span className="inline-block px-2 py-0.5 text-xs font-medium bg-gray-200 text-gray-800 rounded">
+                        {repo.language}
+                      </span>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
       </div>

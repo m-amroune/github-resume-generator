@@ -29,7 +29,7 @@ const SearchForm: React.FC<SearchFormProps> = ({ onSubmit, disabled }) => {
 
   return (
     <form
-      className="flex items-center justify-center gap-2"
+      className="mx-auto flex w-full max-w-xl flex-col gap-3 sm:flex-row sm:flex-wrap"
       onSubmit={(e) => {
         e.preventDefault();
 
@@ -45,19 +45,19 @@ const SearchForm: React.FC<SearchFormProps> = ({ onSubmit, disabled }) => {
     >
       <input
         placeholder="Enter a GitHub username..."
-        className="border px-3 py-2 rounded"
+        className="w-full rounded-lg border border-white/20 bg-white px-4 py-3 text-slate-900 outline-none placeholder:text-slate-400 focus:ring-2 focus:ring-[#e07a5f] sm:flex-1"
         value={username}
         onChange={(e) => setUsername(e.target.value)}
       />
 
       <button
         disabled={disabled}
-        className="border px-3 py-2 rounded cursor-pointer"
+        className="rounded-lg bg-[#f4c95d] px-5 py-3 font-medium text-[#24324a] cursor-pointer transition hover:bg-[#e5b84c] disabled:cursor-not-allowed disabled:opacity-50"
       >
         Generate resume
       </button>
 
-      {error && <p className="text-red-500 text-sm">{error}</p>}
+      {error && <p className="w-full text-sm text-red-200">{error}</p>}
     </form>
   );
 };
