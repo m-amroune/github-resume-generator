@@ -32,7 +32,7 @@ type ResumeResponse = {
   repos: GitHubRepo[];
 };
 
-// function that calculates how many days passed since the repo was updated
+// Calculates how many days passed since the repo was updated
 const getDaysAgo = (dateString: string): string => {
   const updated = new Date(dateString).getTime();
   const now = Date.now();
@@ -40,6 +40,7 @@ const getDaysAgo = (dateString: string): string => {
 
   if (diff === 0) return "Updated today";
   if (diff === 1) return "Updated 1 day ago";
+
   return `Updated ${diff} days ago`;
 };
 
@@ -72,6 +73,7 @@ export default function Home() {
       if (repo.language) {
         acc[repo.language] = (acc[repo.language] || 0) + 1;
       }
+
       return acc;
     }, {}),
   )
@@ -126,132 +128,132 @@ export default function Home() {
         </section>
 
         {user && (
-          <button
-            onClick={() => window.print()}
-            className="border px-3 py-2 rounded text-sm"
-          >
-            Download PDF
-          </button>
+          <div className="flex justify-end">
+            <button
+              onClick={() => window.print()}
+              className="rounded-lg border-2 border-[#24324a] bg-white px-5 py-3 font-medium text-[#24324a] transition hover:bg-[#24324a] hover:text-white"
+            >
+              Download PDF
+            </button>
+          </div>
         )}
 
         {user && (
           <div className="rounded-2xl bg-white p-10 text-center shadow-lg">
             {/* User header */}
-            {user && (
-              <div className="flex items-center justify-center gap-6 border rounded-xl p-6 bg-gray-50 shadow-sm">
-                <Image
-                  src={user.avatar_url}
-                  alt={`${user.login} avatar`}
-                  width={80}
-                  height={80}
-                  className="rounded-full border"
-                />
+            <div className="flex items-center gap-6 border-l-4 border-[#24324a] bg-[#f7f8fa] p-6 text-left">
+              <Image
+                src={user.avatar_url}
+                alt={`${user.login} avatar`}
+                width={80}
+                height={80}
+                className="rounded-full border"
+              />
 
-                <div className="flex flex-col space-y-1 text-center">
-                  <p className="font-semibold text-2xl">{user.login}</p>
+              <div className="flex flex-col space-y-1 text-left">
+                <p className="text-2xl font-semibold">{user.login}</p>
 
-                  {user.name && (
-                    <p className="text-sm text-gray-700">{user.name}</p>
-                  )}
-
-                  <a
-                    href={user.html_url}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="underline text-base text-blue-600"
-                  >
-                    View GitHub profile
-                  </a>
-                </div>
-              </div>
-            )}
-
-            <div className="border-t border-gray-200 my-8"></div>
-
-            {/* About section */}
-            {user && (
-              <div className="w-full border rounded-xl p-6 bg-gray-50 text-left shadow-sm space-y-3">
                 {user.name && (
-                  <h2 className="font-semibold text-xl">{user.name}</h2>
+                  <p className="text-sm text-gray-700">{user.name}</p>
                 )}
 
-                {user.bio && <p className="text-base mt-2">{user.bio}</p>}
-
-                <div className="text-base text-gray-500 mt-2 space-y-1">
-                  {user.location && <p>Location: {user.location}</p>}
-                  {user.company && <p>Company: {user.company}</p>}
-                </div>
+                <a
+                  href={user.html_url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-sm font-medium text-[#40577d] hover:underline"
+                >
+                  View GitHub profile
+                </a>
               </div>
-            )}
+            </div>
 
-            <div className="border-t border-gray-200 my-8"></div>
+            <div className="my-10 h-px bg-[#d9dde5]"></div>
+
+            {/* About section */}
+            <section className="w-full border-l-4 border-[#24324a] pl-5 text-left">
+              <h2 className="mb-4 text-xl font-semibold text-[#24324a]">
+                About
+              </h2>
+
+              {user.bio && (
+                <p className="leading-relaxed text-gray-700">{user.bio}</p>
+              )}
+
+              <div className="mt-4 flex flex-wrap gap-x-6 gap-y-2 text-sm text-gray-500">
+                {user.location && <p>Location: {user.location}</p>}
+                {user.company && <p>Company: {user.company}</p>}
+              </div>
+            </section>
+
+            <div className="my-10 h-px bg-[#d9dde5]"></div>
 
             {/* Skills */}
             {topLanguages.length > 0 && (
-              <div className="w-full border rounded-xl p-6 bg-gray-50 shadow-sm space-y-3">
-                <h2 className="font-semibold text-xl mb-2">Skills</h2>
+              <section className="w-full text-left">
+                <h2 className="mb-4 text-xl font-semibold text-[#24324a]">
+                  Skills
+                </h2>
 
-                <ul className="flex flex-wrap gap-3 justify-center">
+                <ul className="flex flex-wrap gap-3">
                   {topLanguages.map(([language, count]) => (
                     <li
                       key={language}
-                      className="border px-3 py-1.5 text-base rounded-md bg-gray-100"
+                      className="rounded-full border border-[#f4c95d] bg-[#fff8e1] px-4 py-2 text-base font-medium text-[#24324a]"
                     >
                       {language} ({count})
                     </li>
                   ))}
                 </ul>
-              </div>
+              </section>
             )}
 
-            <div className="border-t border-gray-200 my-8"></div>
-
-            {/* Repository count */}
-            {repos.length > 0 && <p>{repos.length} repos found</p>}
+            <div className="my-10 h-px bg-[#d9dde5]"></div>
 
             {/* Top repositories */}
             {topRepos.length > 0 && (
-              <div className="w-full border rounded-xl p-6 bg-gray-50 shadow-sm space-y-3">
-                <h2 className="font-semibold text-xl">Top Repositories</h2>
+              <section className="w-full text-left">
+                <h2 className="mb-2 text-xl font-semibold text-[#24324a]">
+                  Top Repositories
+                </h2>
 
-                {topRepos.map((repo) => (
-                  <div
-                    key={repo.id}
-                    className="border rounded-xl p-6 bg-white shadow-sm hover:shadow-md transition-all duration-200 space-y-3"
-                  >
-                    <div className="flex items-center justify-between gap-4">
-                      <a
-                        href={repo.html_url}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="underline font-semibold text-xl"
-                      >
-                        {repo.name}
-                      </a>
+                <div className="divide-y divide-gray-200">
+                  {topRepos.map((repo) => (
+                    <article key={repo.id} className="py-5">
+                      <div className="flex items-start justify-between gap-4">
+                        <a
+                          href={repo.html_url}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-lg font-semibold text-[#40577d] hover:underline"
+                        >
+                          {repo.name}
+                        </a>
 
-                      <span className="text-sm text-gray-600">
-                        ⭐ {repo.stargazers_count}
-                      </span>
-                    </div>
+                        <span className="shrink-0 rounded-full bg-[#fff8e1] px-3 py-1 text-sm font-medium text-[#24324a]">
+                          ⭐ {repo.stargazers_count}
+                        </span>
+                      </div>
 
-                    {repo.description && (
-                      <p className="text-base text-gray-700 leading-relaxed">
-                        {repo.description}
-                      </p>
-                    )}
+                      {repo.description && (
+                        <p className="mt-3 leading-relaxed text-gray-700">
+                          {repo.description}
+                        </p>
+                      )}
 
-                    <p className="text-xs text-gray-500">
-                      {getDaysAgo(repo.updated_at)}
-                    </p>
+                      <div className="mt-4 flex flex-wrap items-center gap-3 border-t border-gray-200 pt-3 text-sm text-gray-600">
+                        {repo.language && (
+                          <span className="rounded-md bg-[#eef1f6] px-2.5 py-1 font-medium text-[#40577d]">
+                            {repo.language}
+                          </span>
+                        )}
 
-                    {repo.language && (
-                      <span className="inline-block px-2 py-0.5 text-xs font-medium bg-gray-200 text-gray-800 rounded">
-                        {repo.language}
-                      </span>
-                    )}
-                  </div>
-                ))}
-              </div>
+                        <span>{getDaysAgo(repo.updated_at)}</span>
+                      </div>
+                    </article>
+                  ))}
+                </div>
+              </section>
             )}
           </div>
         )}
