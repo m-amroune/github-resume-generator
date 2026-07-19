@@ -114,7 +114,7 @@ export default function Home() {
             GitHub Resume Generator
           </h1>
 
-          <p className="mt-3 text-sm text-slate-300">
+          <p className="mt-3 text-base text-slate-300">
             Generate a resume from a GitHub profile.
           </p>
 
@@ -139,9 +139,9 @@ export default function Home() {
         )}
 
         {user && (
-          <div className="rounded-2xl bg-white p-10 text-center shadow-lg">
+          <div className="rounded-2xl bg-white p-5 text-center shadow-lg sm:p-10">
             {/* User header */}
-            <div className="flex items-center gap-6 border-l-4 border-[#24324a] bg-[#f7f8fa] p-6 text-left">
+            <div className="flex flex-col items-center gap-4 border-l-4 border-[#24324a] bg-[#f7f8fa] p-6 text-center sm:flex-row sm:gap-6 sm:text-left">
               <Image
                 src={user.avatar_url}
                 alt={`${user.login} avatar`}
@@ -150,7 +150,7 @@ export default function Home() {
                 className="rounded-full border"
               />
 
-              <div className="flex flex-col space-y-1 text-left">
+            <div className="flex flex-col space-y-1 text-center sm:text-left">
                 <p className="text-2xl font-semibold">{user.login}</p>
 
                 {user.name && (
@@ -211,50 +211,51 @@ export default function Home() {
             <div className="my-10 h-px bg-[#d9dde5]"></div>
 
             {/* Top repositories */}
-            {topRepos.length > 0 && (
-              <section className="w-full text-left">
-                <h2 className="mb-2 text-xl font-semibold text-[#24324a]">
-                  Top Repositories
-                </h2>
+            {/* Top repositories */}
+{topRepos.length > 0 && (
+  <section className="w-full text-left">
+    <h2 className="mb-2 text-xl font-semibold text-[#24324a]">
+      Top Repositories
+    </h2>
 
-                <div className="divide-y divide-gray-200">
-                  {topRepos.map((repo) => (
-                    <article key={repo.id} className="py-5">
-                      <div className="flex items-start justify-between gap-4">
-                        <a
-                          href={repo.html_url}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="text-lg font-semibold text-[#40577d] hover:underline"
-                        >
-                          {repo.name}
-                        </a>
+    <div className="divide-y divide-gray-200">
+      {topRepos.map((repo) => (
+        <article key={repo.id} className="w-full py-5">
+          <div className="flex flex-col items-start gap-3 md:flex-row md:justify-between md:gap-4">
+            <a
+              href={repo.html_url}
+              target="_blank"
+              rel="noreferrer"
+              className="min-w-0 wrap-break-word  text-lg font-semibold text-[#40577d] hover:underline"
+            >
+              {repo.name}
+            </a>
 
-                        <span className="shrink-0 rounded-full bg-[#fff8e1] px-3 py-1 text-sm font-medium text-[#24324a]">
-                          ⭐ {repo.stargazers_count}
-                        </span>
-                      </div>
+            <span className="shrink-0 rounded-full bg-[#fff8e1] px-3 py-1 text-sm font-medium text-[#24324a]">
+              ⭐ {repo.stargazers_count}
+            </span>
+          </div>
 
-                      {repo.description && (
-                        <p className="mt-3 leading-relaxed text-gray-700">
-                          {repo.description}
-                        </p>
-                      )}
+          {repo.description && (
+            <p className="mt-3 leading-relaxed text-gray-700">
+              {repo.description}
+            </p>
+          )}
 
-                      <div className="mt-4 flex flex-wrap items-center gap-3 border-t border-gray-200 pt-3 text-sm text-gray-600">
-                        {repo.language && (
-                          <span className="rounded-md bg-[#eef1f6] px-2.5 py-1 font-medium text-[#40577d]">
-                            {repo.language}
-                          </span>
-                        )}
-
-                        <span>{getDaysAgo(repo.updated_at)}</span>
-                      </div>
-                    </article>
-                  ))}
-                </div>
-              </section>
+          <div className="mt-4 flex flex-wrap items-center gap-3 border-t border-gray-200 pt-3 text-sm text-gray-600">
+            {repo.language && (
+              <span className="rounded-md bg-[#eef1f6] px-2.5 py-1 font-medium text-[#40577d]">
+                {repo.language}
+              </span>
             )}
+
+            <span>{getDaysAgo(repo.updated_at)}</span>
+          </div>
+        </article>
+      ))}
+    </div>
+  </section>
+)}
           </div>
         )}
       </div>
