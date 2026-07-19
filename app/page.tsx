@@ -107,9 +107,9 @@ export default function Home() {
   };
 
   return (
-    <main className="min-h-screen bg-[#f3f1ec] px-4 py-10">
-      <div className="mx-auto max-w-4xl space-y-8">
-        <section className="rounded-2xl bg-[#24324a] px-6 py-16 text-center text-white shadow-lg sm:px-10 sm:py-20">
+    <main className="min-h-screen bg-[#f3f1ec] px-4 py-10 print:bg-white print:p-0">
+  <div className="mx-auto max-w-4xl space-y-8 print:w-full print:max-w-none print:space-y-0">
+        <section className="rounded-2xl bg-[#24324a] px-6 py-16 text-center text-white shadow-lg sm:px-10 sm:py-20 print:hidden">
           <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
             GitHub Resume Generator
           </h1>
@@ -128,7 +128,7 @@ export default function Home() {
         </section>
 
         {user && (
-          <div className="flex justify-end">
+         <div className="flex justify-end print:hidden">
             <button
               onClick={() => window.print()}
               className="rounded-lg border-2 border-[#24324a] bg-white px-5 py-3 font-medium text-[#24324a] transition hover:bg-[#24324a] hover:text-white"
@@ -139,7 +139,7 @@ export default function Home() {
         )}
 
         {user && (
-          <div className="rounded-2xl bg-white p-5 text-center shadow-lg sm:p-10">
+          <div className="rounded-2xl bg-white p-5 text-center shadow-lg sm:p-10 print:rounded-none print:p-0 print:shadow-none">
             {/* User header */}
             <div className="flex flex-col items-center gap-4 border-l-4 border-[#24324a] bg-[#f7f8fa] p-6 text-center sm:flex-row sm:gap-6 sm:text-left">
               <Image
@@ -211,7 +211,6 @@ export default function Home() {
             <div className="my-10 h-px bg-[#d9dde5]"></div>
 
             {/* Top repositories */}
-            {/* Top repositories */}
 {topRepos.length > 0 && (
   <section className="w-full text-left">
     <h2 className="mb-2 text-xl font-semibold text-[#24324a]">
@@ -220,7 +219,10 @@ export default function Home() {
 
     <div className="divide-y divide-gray-200">
       {topRepos.map((repo) => (
-        <article key={repo.id} className="w-full py-5">
+        <article
+  key={repo.id}
+  className="w-full py-5 print:break-inside-avoid"
+>
           <div className="flex flex-col items-start gap-3 md:flex-row md:justify-between md:gap-4">
             <a
               href={repo.html_url}
