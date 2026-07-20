@@ -171,8 +171,9 @@ export default function Home() {
             <div className="my-10 h-px bg-[#d9dde5]"></div>
 
             {/* About section */}
-            <section className="w-full border-l-4 border-[#24324a] pl-5 text-left">
-              <h2 className="mb-4 text-xl font-semibold text-[#24324a]">
+            {(user.bio || user.location || user.company) && (
+  <section className="w-full border-l-4 border-[#24324a] pl-5 text-left">
+              <h2 className="mb-4 inline-block border-b-2 border-[#f4c95d] pb-1 text-xl font-semibold text-[#24324a]">
                 About
               </h2>
 
@@ -184,14 +185,15 @@ export default function Home() {
                 {user.location && <p>Location: {user.location}</p>}
                 {user.company && <p>Company: {user.company}</p>}
               </div>
-            </section>
+              </section>
+)}
 
             <div className="my-10 h-px bg-[#d9dde5]"></div>
 
             {/* Skills */}
             {topLanguages.length > 0 && (
               <section className="w-full text-left">
-                <h2 className="mb-4 text-xl font-semibold text-[#24324a]">
+                <h2 className="mb-4 inline-block border-b-2 border-[#f4c95d] pb-1 text-xl font-semibold text-[#24324a]">
                   Skills
                 </h2>
 
@@ -213,9 +215,9 @@ export default function Home() {
             {/* Top repositories */}
 {topRepos.length > 0 && (
   <section className="w-full text-left">
-    <h2 className="mb-2 text-xl font-semibold text-[#24324a]">
-      Top Repositories
-    </h2>
+    <h2 className="mb-4 inline-block border-b-2 border-[#f4c95d] pb-1 text-xl font-semibold text-[#24324a]">
+  Top Repositories
+</h2>
 
     <div className="divide-y divide-gray-200">
       {topRepos.map((repo) => (
@@ -246,9 +248,9 @@ export default function Home() {
 
           <div className="mt-4 flex flex-wrap items-center gap-3 border-t border-gray-200 pt-3 text-sm text-gray-600">
             {repo.language && (
-              <span className="rounded-md bg-[#eef1f6] px-2.5 py-1 font-medium text-[#40577d]">
-                {repo.language}
-              </span>
+              <span className="rounded-md border border-[#cbd3df] bg-[#eef1f6] px-2.5 py-1 font-medium text-[#40577d]">
+  {repo.language}
+</span>
             )}
 
             <span>{getDaysAgo(repo.updated_at)}</span>
