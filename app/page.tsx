@@ -84,6 +84,8 @@ export default function Home() {
   const handleGenerate = async (username: string) => {
     setLoading(true);
     setError(null);
+    setUser(null);
+    setRepos([]);
 
     try {
       const res = await fetch(`/api/resume/${username}`);
@@ -108,7 +110,7 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-[#f3f1ec] px-4 py-10 print:bg-white print:p-0">
-  <div className="mx-auto max-w-4xl space-y-8 print:w-full print:max-w-none print:space-y-0">
+      <div className="mx-auto max-w-4xl space-y-8 print:w-full print:max-w-none print:space-y-0">
         <section className="rounded-2xl bg-[#24324a] px-6 py-16 text-center text-white shadow-lg sm:px-10 sm:py-20 print:hidden">
           <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
             GitHub Resume Generator
@@ -128,7 +130,7 @@ export default function Home() {
         </section>
 
         {user && (
-         <div className="flex justify-end print:hidden">
+          <div className="flex justify-end print:hidden">
             <button
               onClick={() => window.print()}
               className="rounded-lg border-2 border-[#24324a] bg-white px-5 py-3 font-medium text-[#24324a] transition hover:bg-[#24324a] hover:text-white"
@@ -150,7 +152,7 @@ export default function Home() {
                 className="rounded-full border"
               />
 
-            <div className="flex flex-col space-y-1 text-center sm:text-left">
+              <div className="flex flex-col space-y-1 text-center sm:text-left">
                 <p className="text-2xl font-semibold">{user.login}</p>
 
                 {user.name && (
@@ -168,27 +170,27 @@ export default function Home() {
               </div>
             </div>
 
-            <div className="my-10 h-px bg-[#d9dde5]"></div>
+            <div className="my-8 h-px bg-[#d9dde5]"></div>
 
             {/* About section */}
             {(user.bio || user.location || user.company) && (
-  <section className="w-full border-l-4 border-[#24324a] pl-5 text-left">
-              <h2 className="mb-4 inline-block border-b-2 border-[#f4c95d] pb-1 text-xl font-semibold text-[#24324a]">
-                About
-              </h2>
+              <section className="w-full border-l-4 border-[#24324a] pl-5 text-left">
+                <h2 className="mb-4 inline-block border-b-2 border-[#f4c95d] pb-1 text-xl font-semibold text-[#24324a]">
+                  About
+                </h2>
 
-              {user.bio && (
-                <p className="leading-relaxed text-gray-700">{user.bio}</p>
-              )}
+                {user.bio && (
+                  <p className="leading-relaxed text-gray-700">{user.bio}</p>
+                )}
 
-              <div className="mt-4 flex flex-wrap gap-x-6 gap-y-2 text-sm text-gray-500">
-                {user.location && <p>Location: {user.location}</p>}
-                {user.company && <p>Company: {user.company}</p>}
-              </div>
+                <div className="mt-4 flex flex-wrap gap-x-6 gap-y-2 text-sm text-gray-500">
+                  {user.location && <p>Location: {user.location}</p>}
+                  {user.company && <p>Company: {user.company}</p>}
+                </div>
               </section>
-)}
+            )}
 
-            <div className="my-10 h-px bg-[#d9dde5]"></div>
+            <div className="my-8 h-px bg-[#d9dde5]"></div>
 
             {/* Skills */}
             {topLanguages.length > 0 && (
@@ -210,56 +212,61 @@ export default function Home() {
               </section>
             )}
 
-            <div className="my-10 h-px bg-[#d9dde5]"></div>
+            <div className="my-8 h-px bg-[#d9dde5]"></div>
 
             {/* Top repositories */}
-{topRepos.length > 0 && (
-  <section className="w-full text-left">
-    <h2 className="mb-4 inline-block border-b-2 border-[#f4c95d] pb-1 text-xl font-semibold text-[#24324a]">
-  Top Repositories
-</h2>
+            {topRepos.length > 0 && (
+              <section className="w-full text-left">
+                <h2 className="mb-4 inline-block border-b-2 border-[#f4c95d] pb-1 text-xl font-semibold text-[#24324a]">
+                  Top Repositories
+                </h2>
 
-    <div className="divide-y divide-gray-200">
-      {topRepos.map((repo) => (
-        <article
-  key={repo.id}
-  className="w-full py-5 print:break-inside-avoid"
->
-          <div className="flex flex-col items-start gap-3 md:flex-row md:justify-between md:gap-4">
-            <a
-              href={repo.html_url}
-              target="_blank"
-              rel="noreferrer"
-              className="min-w-0 wrap-break-word  text-lg font-semibold text-[#40577d] hover:underline"
-            >
-              {repo.name}
-            </a>
+                <div className="divide-y divide-gray-200">
+                  {user && topRepos.length === 0 && (
+                    <p className="text-left text-gray-600">
+                      No repositories to display.
+                    </p>
+                  )}
+                  {topRepos.map((repo) => (
+                    <article
+                      key={repo.id}
+                      className="w-full py-4 print:break-inside-avoid"
+                    >
+                      <div className="flex flex-col items-start gap-3 md:flex-row md:justify-between md:gap-4">
+                        <a
+                          href={repo.html_url}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="min-w-0 wrap-break-word  text-lg font-semibold text-[#40577d] hover:underline"
+                        >
+                          {repo.name}
+                        </a>
 
-            <span className="shrink-0 rounded-full bg-[#fff8e1] px-3 py-1 text-sm font-medium text-[#24324a]">
-              ⭐ {repo.stargazers_count}
-            </span>
-          </div>
+                        <span className="shrink-0 rounded-full bg-[#fff8e1] px-3 py-1 text-sm font-medium text-[#24324a]">
+                          ⭐ {repo.stargazers_count}
+                        </span>
+                      </div>
 
-          {repo.description && (
-            <p className="mt-3 leading-relaxed text-gray-700">
-              {repo.description}
-            </p>
-          )}
+                      {repo.description && (
+                        <p className="mt-3 leading-relaxed text-gray-700">
+                          {repo.description}
+                        </p>
+                      )}
 
-          <div className="mt-4 flex flex-wrap items-center gap-3 border-t border-gray-200 pt-3 text-sm text-gray-600">
-            {repo.language && (
-              <span className="rounded-md border border-[#cbd3df] bg-[#eef1f6] px-2.5 py-1 font-medium text-[#40577d]">
-  {repo.language}
-</span>
+                      <div className="mt-4 flex flex-wrap items-center gap-3 border-t border-gray-200 pt-3 text-sm text-gray-600">
+                        {repo.language && (
+                          <span className="rounded-md border border-[#cbd3df] bg-[#eef1f6] px-2.5 py-1 font-medium text-[#40577d]">
+                            {repo.language}
+                          </span>
+                        )}
+
+                        <span>{getDaysAgo(repo.updated_at)}</span>
+                      </div>
+                    </article>
+                  ))}
+                </div>
+              </section>
             )}
-
-            <span>{getDaysAgo(repo.updated_at)}</span>
-          </div>
-        </article>
-      ))}
-    </div>
-  </section>
-)}
           </div>
         )}
       </div>
