@@ -2,6 +2,13 @@
 
 GitHub profile to resume-style page generator built with Next.js.
 
+## Live Demo
+
+[View the application](https://m-a-github-resume-generator.vercel.app/)
+
+![GitHub Resume Generator preview](./public/assets/github_resume.png)
+
+
 ---
 
 ## About the Project
