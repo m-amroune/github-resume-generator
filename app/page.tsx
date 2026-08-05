@@ -4,6 +4,10 @@ import SearchForm from "@/components/SearchForm";
 import { useState } from "react";
 import Image from "next/image";
 import { getDaysAgo } from "@/utils/getDaysAgo";
+import {
+  selectTopRepos,
+  type GitHubRepo,
+} from "@/utils/selectTopRepos";
 
 // User data used in the UI
 type GitHubUser = {
@@ -16,17 +20,7 @@ type GitHubUser = {
   company: string | null;
 };
 
-// Repository data used in the UI
-type GitHubRepo = {
-  id: number;
-  name: string;
-  description: string | null;
-  html_url: string;
-  stargazers_count: number;
-  fork: boolean;
-  language: string | null;
-  updated_at: string;
-};
+
 
 type ResumeResponse = {
   user: GitHubUser;
@@ -40,22 +34,8 @@ export default function Home() {
   const [repos, setRepos] = useState<GitHubRepo[]>([]);
   const [loading, setLoading] = useState(false);
 
-  // Primary selection: non-fork, with description and stars
-  const primaryRepos = repos
-    .filter(
-      (repo) => !repo.fork && repo.description && repo.stargazers_count > 0,
-    )
-    .sort((a, b) => b.stargazers_count - a.stargazers_count)
-    .slice(0, 6);
-
-  // Fallback selection: non-fork with description, sorted by update date
-  const fallbackRepos = repos
-    .filter((repo) => !repo.fork && repo.description)
-    .sort((a, b) => Date.parse(b.updated_at) - Date.parse(a.updated_at))
-    .slice(0, 6);
-
-  // Use fallback if no starred repos match
-  const topRepos = primaryRepos.length > 0 ? primaryRepos : fallbackRepos;
+// Select repositories to display
+const topRepos = selectTopRepos(repos);
 
   // Compute top languages from repositories
   const topLanguages = Object.entries(
