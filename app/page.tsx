@@ -8,6 +8,7 @@ import {
   selectTopRepos,
   type GitHubRepo,
 } from "@/utils/selectTopRepos";
+import { getTopLanguages } from "@/utils/getTopLanguages";
 
 // User data used in the UI
 type GitHubUser = {
@@ -37,18 +38,8 @@ export default function Home() {
 // Select repositories to display
 const topRepos = selectTopRepos(repos);
 
-  // Compute top languages from repositories
-  const topLanguages = Object.entries(
-    repos.reduce((acc: Record<string, number>, repo) => {
-      if (repo.language) {
-        acc[repo.language] = (acc[repo.language] || 0) + 1;
-      }
-
-      return acc;
-    }, {}),
-  )
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 5);
+// Compute top languages from repositories
+const topLanguages = getTopLanguages(repos);
 
   // Fetch user and repositories from GitHub API
   const handleGenerate = async (username: string) => {
