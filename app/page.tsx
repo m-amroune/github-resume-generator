@@ -4,10 +4,7 @@ import SearchForm from "@/components/SearchForm";
 import { useState } from "react";
 import Image from "next/image";
 import { getDaysAgo } from "@/utils/getDaysAgo";
-import {
-  selectTopRepos,
-  type GitHubRepo,
-} from "@/utils/selectTopRepos";
+import { selectTopRepos, type GitHubRepo } from "@/utils/selectTopRepos";
 import { getTopLanguages } from "@/utils/getTopLanguages";
 
 // User data used in the UI
@@ -21,13 +18,10 @@ type GitHubUser = {
   company: string | null;
 };
 
-
-
 type ResumeResponse = {
   user: GitHubUser;
   repos: GitHubRepo[];
 };
-
 
 export default function Home() {
   const [user, setUser] = useState<GitHubUser | null>(null);
@@ -35,11 +29,11 @@ export default function Home() {
   const [repos, setRepos] = useState<GitHubRepo[]>([]);
   const [loading, setLoading] = useState(false);
 
-// Select repositories to display
-const topRepos = selectTopRepos(repos);
+  // Select repositories to display
+  const topRepos = selectTopRepos(repos);
 
-// Compute top languages from repositories
-const topLanguages = getTopLanguages(repos);
+  // Compute top languages from repositories
+  const topLanguages = getTopLanguages(repos);
 
   // Fetch user and repositories from GitHub API
   const handleGenerate = async (username: string) => {
@@ -176,6 +170,11 @@ const topLanguages = getTopLanguages(repos);
             <div className="my-8 h-px bg-[#d9dde5]"></div>
 
             {/* Top repositories */}
+            {topRepos.length === 0 && (
+              <p className="text-left text-gray-600">
+                No repositories to display.
+              </p>
+            )}
             {topRepos.length > 0 && (
               <section className="w-full text-left">
                 <h2 className="mb-4 inline-block border-b-2 border-[#f4c95d] pb-1 text-xl font-semibold text-[#24324a]">
