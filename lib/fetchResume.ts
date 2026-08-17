@@ -27,7 +27,13 @@ export type ResumeResponse = {
 export async function fetchResume(
   username: string,
 ): Promise<ResumeResponse> {
-  const res = await fetch(`/api/resume/${username}`);
+ let res: Response;
+
+try {
+  res = await fetch(`/api/resume/${username}`);
+} catch {
+  throw new Error("Server error");
+}
 
   if (!res.ok) {
     const data = (await res.json()) as { error?: string };

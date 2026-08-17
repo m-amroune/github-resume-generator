@@ -1,5 +1,25 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import Home from "./page";
+import {
+  QueryClient,
+  QueryClientProvider,
+} from "@tanstack/react-query";
+
+function renderHome() {
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: {
+        retry: false,
+      },
+    },
+  });
+
+  return render(
+    <QueryClientProvider client={queryClient}>
+      <Home />
+    </QueryClientProvider>,
+  );
+}
 
 const mockFetch = jest.fn() as jest.MockedFunction<typeof fetch>;
 
@@ -15,7 +35,7 @@ describe("Home", () => {
       () => new Promise<Response>(() => {}),
     );
 
-    render(<Home />);
+renderHome();
 
     fireEvent.change(
       screen.getByPlaceholderText("Enter a GitHub username..."),
@@ -47,7 +67,7 @@ describe("Home", () => {
     }),
   } as Response);
 
-  render(<Home />);
+renderHome();
 
   fireEvent.change(
     screen.getByPlaceholderText("Enter a GitHub username..."),
@@ -71,7 +91,7 @@ it("displays the API error message", async () => {
     }),
   } as Response);
 
-  render(<Home />);
+  renderHome();
 
   fireEvent.change(
     screen.getByPlaceholderText("Enter a GitHub username..."),
@@ -103,7 +123,7 @@ it("displays a message when there are no repositories", async () => {
     }),
   } as Response);
 
-  render(<Home />);
+  renderHome();
 
   fireEvent.change(
     screen.getByPlaceholderText("Enter a GitHub username..."),

@@ -2,32 +2,33 @@
 
 import SearchForm from "@/components/SearchForm";
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { fetchResume } from "@/lib/fetchResume";
 import Image from "next/image";
 import { getDaysAgo } from "@/utils/getDaysAgo";
 import { selectTopRepos, type GitHubRepo } from "@/utils/selectTopRepos";
 import { getTopLanguages } from "@/utils/getTopLanguages";
 
-// User data used in the UI
-type GitHubUser = {
-  login: string;
-  avatar_url: string;
-  html_url: string;
-  name: string | null;
-  bio: string | null;
-  location: string | null;
-  company: string | null;
-};
 
-type ResumeResponse = {
-  user: GitHubUser;
-  repos: GitHubRepo[];
-};
 
 export default function Home() {
-  const [user, setUser] = useState<GitHubUser | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [repos, setRepos] = useState<GitHubRepo[]>([]);
-  const [loading, setLoading] = useState(false);
+const [username, setUsername] = useState("");
+
+const {
+  data,
+  error: queryError,
+  isFetching,
+} = useQuery({
+  queryKey: ["resume", username],
+  queryFn: () => fetchResume(username),
+  enabled: username !== "",
+  retry: false,
+});
+
+const user = data?.user ?? null;
+const repos = data?.repos ?? [];
+const error = queryError?.message ?? null;
+const loading = isFetching;
 
   // Select repositories to display
   const topRepos = selectTopRepos(repos);
@@ -35,33 +36,11 @@ export default function Home() {
   // Compute top languages from repositories
   const topLanguages = getTopLanguages(repos);
 
-  // Fetch user and repositories from GitHub API
-  const handleGenerate = async (username: string) => {
-    setLoading(true);
-    setError(null);
-    setUser(null);
-    setRepos([]);
+// Start the GitHub data query
+const handleGenerate = (username: string) => {
+  setUsername(username);
+};
 
-    try {
-      const res = await fetch(`/api/resume/${username}`);
-
-      if (!res.ok) {
-        const data = (await res.json()) as { error?: string };
-        setError(data.error ?? "Error");
-        setLoading(false);
-        return;
-      }
-
-      const data: ResumeResponse = await res.json();
-
-      setUser(data.user);
-      setRepos(data.repos);
-    } catch {
-      setError("Server error");
-    } finally {
-      setLoading(false);
-    }
-  };
 
   return (
     <main className="min-h-screen bg-[#f3f1ec] px-4 py-10 print:bg-white print:p-0">
