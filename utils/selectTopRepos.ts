@@ -10,13 +10,16 @@ export type GitHubRepo = {
   updated_at: string;
 };
 
-export const selectTopRepos = (repos: GitHubRepo[]): GitHubRepo[] => {
+export const selectTopRepos = (
+  repos: GitHubRepo[],
+  limit = 6,
+): GitHubRepo[] => {
   const primaryRepos = repos
     .filter(
       (repo) => !repo.fork && repo.description && repo.stargazers_count > 0,
     )
     .sort((a, b) => b.stargazers_count - a.stargazers_count)
-    .slice(0, 6);
+    .slice(0, limit);
 
   if (primaryRepos.length > 0) {
     return primaryRepos;
@@ -25,5 +28,5 @@ export const selectTopRepos = (repos: GitHubRepo[]): GitHubRepo[] => {
   return repos
     .filter((repo) => !repo.fork && repo.description)
     .sort((a, b) => Date.parse(b.updated_at) - Date.parse(a.updated_at))
-    .slice(0, 6);
+    .slice(0, limit);
 };

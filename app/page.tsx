@@ -13,6 +13,7 @@ import { getTopLanguages } from "@/utils/getTopLanguages";
 
 export default function Home() {
 const [username, setUsername] = useState("");
+const [repoLimit, setRepoLimit] = useState(6);
 
 const {
   data,
@@ -31,7 +32,7 @@ const error = queryError?.message ?? null;
 const loading = isFetching;
 
   // Select repositories to display
-  const topRepos = selectTopRepos(repos);
+  const topRepos = selectTopRepos(repos, repoLimit);
 
   // Compute top languages from repositories
   const topLanguages = getTopLanguages(repos);
@@ -57,7 +58,25 @@ const handleGenerate = (username: string) => {
           <div className="mt-6">
             <SearchForm onSubmit={handleGenerate} disabled={loading} />
           </div>
+          {user && (
+  <div className="mt-5 flex items-center justify-center gap-3">
+    <label htmlFor="repo-limit" className="text-sm text-slate-300">
+      Repositories to display:
+    </label>
 
+    <select
+      id="repo-limit"
+      value={repoLimit}
+      onChange={(event) => setRepoLimit(Number(event.target.value))}
+      className="cursor-pointer rounded-md bg-white px-3 py-2 text-sm font-medium text-[#24324a]"
+    >
+      <option value={6}>6</option>
+      <option value={10}>10</option>
+      <option value={15}>15</option>
+      <option value={20}>20</option>
+    </select>
+  </div>
+)}
           {loading && <p className="mt-4 text-slate-300">Loading...</p>}
 
           {error && <p className="mt-4 text-red-300">{error}</p>}

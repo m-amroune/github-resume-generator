@@ -140,4 +140,59 @@ it("displays a message when there are no repositories", async () => {
     await screen.findByText("No repositories to display."),
   ).toBeInTheDocument();
 });
+
+it("changes the number of repositories displayed", async () => {
+  const repos = Array.from({ length: 12 }, (_, index) => ({
+    id: index + 1,
+    name: `project-${index + 1}`,
+    description: "Project description",
+    html_url: `https://github.com/test/project-${index + 1}`,
+    stargazers_count: 12 - index,
+    fork: false,
+    language: "TypeScript",
+    updated_at: "2026-08-05T12:00:00Z",
+  }));
+
+  mockFetch.mockResolvedValueOnce({
+    ok: true,
+    json: async () => ({
+      user: {
+        login: "m-amroune",
+        avatar_url: "https://avatars.githubusercontent.com/u/1",
+        html_url: "https://github.com/m-amroune",
+        name: "Moustapha Amroune",
+        bio: null,
+        location: null,
+        company: null,
+      },
+      repos,
+    }),
+  } as Response);
+
+  renderHome();
+
+  fireEvent.change(
+    screen.getByPlaceholderText("Enter a GitHub username..."),
+    {
+      target: { value: "m-amroune" },
+    },
+  );
+
+  fireEvent.click(
+    screen.getByRole("button", { name: "Generate resume" }),
+  );
+
+  await screen.findByText("project-1");
+
+  expect(screen.queryByText("project-10")).not.toBeInTheDocument();
+
+  fireEvent.change(
+    screen.getByLabelText("Repositories to display:"),
+    {
+      target: { value: "10" },
+    },
+  );
+
+  expect(screen.getByText("project-10")).toBeInTheDocument();
+});
 });

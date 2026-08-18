@@ -120,6 +120,24 @@ it("limits the result to 6 repositories", () => {
 
   expect(result).toHaveLength(6);
 });
+
+it("uses a custom repository limit", () => {
+  const repos: GitHubRepo[] = Array.from({ length: 12 }, (_, index) => ({
+    id: index + 1,
+    name: `project-${index + 1}`,
+    description: "Project description",
+    html_url: `https://github.com/test/project-${index + 1}`,
+    stargazers_count: 12 - index,
+    fork: false,
+    language: "TypeScript",
+    updated_at: "2026-08-05T12:00:00Z",
+  }));
+
+  const result = selectTopRepos(repos, 10);
+
+  expect(result).toHaveLength(10);
+});
+
 it("sorts repositories by update date when none have stars", () => {
   const repos: GitHubRepo[] = [
     {
