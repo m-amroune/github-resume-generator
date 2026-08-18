@@ -36,43 +36,57 @@ export async function GET(
   context: { params: Promise<{ username: string }> },
 ) {
   const { username } = await context.params;
+  const githubToken = process.env.GITHUB_TOKEN;
+
+  if (!githubToken) {
+    const error: ApiError = { error: "Server configuration error" };
+    return NextResponse.json(error, { status: 500 });
+  }
+
+  const headers = {
+    Authorization: `Bearer ${githubToken}`,
+    "User-Agent": "github-resume-generator",
+  };
 
   try {
-    // fetch GitHub user
+    // Fetch GitHub user
     const userRes = await fetch(`https://api.github.com/users/${username}`, {
-      headers: { "User-Agent": "github-resume-generator" },
+      headers,
       cache: "no-store",
     });
 
-    console.log("GitHub status:", userRes.status); // debug
+    if (userRes.status === 404) {
+      const error: ApiError = { error: "User not found" };
+      return NextResponse.json(error, { status: 404 });
+    }
 
     if (!userRes.ok) {
-      // not found
-      const error: ApiError = { error: "User not found" };
+      const error: ApiError = { error: "GitHub API error" };
       return NextResponse.json(error, { status: userRes.status });
     }
 
     const user: GitHubUser = await userRes.json();
 
-    // fetch repos
+    // Fetch repositories
     const reposRes = await fetch(
       `https://api.github.com/users/${username}/repos?per_page=100`,
       {
-        headers: {
-          "User-Agent": "github-resume-generator",
-        },
-
+        headers,
         cache: "no-store",
       },
     );
 
+    if (!reposRes.ok) {
+      const error: ApiError = { error: "Repository fetch failed" };
+      return NextResponse.json(error, { status: reposRes.status });
+    }
+
     const repos: GitHubRepo[] = await reposRes.json();
 
-    // return data
+    // Return data
     const data: ResumeResponse = { user, repos };
     return NextResponse.json(data);
   } catch {
-    // fallback
     const error: ApiError = { error: "Server error" };
     return NextResponse.json(error, { status: 500 });
   }
