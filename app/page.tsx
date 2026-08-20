@@ -9,39 +9,66 @@ import { getDaysAgo } from "@/utils/getDaysAgo";
 import { selectTopRepos, type GitHubRepo } from "@/utils/selectTopRepos";
 import { getTopLanguages } from "@/utils/getTopLanguages";
 
-
-
 export default function Home() {
-const [username, setUsername] = useState("");
-const [repoLimit, setRepoLimit] = useState(6);
+  const [username, setUsername] = useState("");
+  const [repoLimit, setRepoLimit] = useState(6);
+  const [selectedRepoIds, setSelectedRepoIds] = useState<number[] | null>(null);
 
-const {
-  data,
-  error: queryError,
-  isFetching,
-} = useQuery({
-  queryKey: ["resume", username],
-  queryFn: () => fetchResume(username),
-  enabled: username !== "",
-  retry: false,
-});
+  const {
+    data,
+    error: queryError,
+    isFetching,
+  } = useQuery({
+    queryKey: ["resume", username],
+    queryFn: () => fetchResume(username),
+    enabled: username !== "",
+    retry: false,
+  });
 
-const user = data?.user ?? null;
-const repos = data?.repos ?? [];
-const error = queryError?.message ?? null;
-const loading = isFetching;
+  const user = data?.user ?? null;
+  const repos = data?.repos ?? [];
+  const error = queryError?.message ?? null;
+  const loading = isFetching;
 
   // Select repositories to display
   const topRepos = selectTopRepos(repos, repoLimit);
 
+  const displayedRepos =
+    selectedRepoIds === null
+      ? topRepos
+      : selectedRepoIds
+          .map((id) => repos.find((repo) => repo.id === id))
+          .filter((repo): repo is GitHubRepo => repo !== undefined);
+
+  const selectableRepos = repos.filter((repo) => !repo.fork);
+
+  const otherRepos = selectableRepos.filter(
+    (repo) =>
+      !displayedRepos.some((selectedRepo) => selectedRepo.id === repo.id),
+  );
+
   // Compute top languages from repositories
   const topLanguages = getTopLanguages(repos);
 
-// Start the GitHub data query
-const handleGenerate = (username: string) => {
-  setUsername(username);
-};
+  // Start the GitHub data query
+  const handleGenerate = (username: string) => {
+    setSelectedRepoIds(null);
+    setUsername(username);
+  };
 
+  const handleRepoToggle = (repoId: number) => {
+    const currentIds =
+      selectedRepoIds ?? topRepos.map((repo) => repo.id);
+
+    if (currentIds.includes(repoId)) {
+      setSelectedRepoIds(currentIds.filter((id) => id !== repoId));
+      return;
+    }
+
+    if (currentIds.length < repoLimit) {
+      setSelectedRepoIds([...currentIds, repoId]);
+    }
+  };
 
   return (
     <main className="min-h-screen bg-[#f3f1ec] px-4 py-10 print:bg-white print:p-0">
@@ -58,26 +85,112 @@ const handleGenerate = (username: string) => {
           <div className="mt-6">
             <SearchForm onSubmit={handleGenerate} disabled={loading} />
           </div>
-          {user && (
-  <div className="mt-5 flex items-center justify-center gap-3">
-    <label htmlFor="repo-limit" className="text-sm text-slate-300">
-      Repositories to display:
-    </label>
 
-    <select
-      id="repo-limit"
-      value={repoLimit}
-      onChange={(event) => setRepoLimit(Number(event.target.value))}
-      className="cursor-pointer rounded-md bg-white px-3 py-2 text-sm font-medium text-[#24324a]"
-    >
-      <option value={6}>6</option>
-      <option value={10}>10</option>
-      <option value={15}>15</option>
-      <option value={20}>20</option>
-    </select>
-  </div>
+          {user && (
+            <div className="mt-5 flex items-center justify-center gap-3">
+              <label
+                htmlFor="repo-limit"
+                className="text-sm text-slate-300"
+              >
+                Repositories to display:
+              </label>
+
+              <select
+                id="repo-limit"
+                value={repoLimit}
+                onChange={(event) => {
+                  setRepoLimit(Number(event.target.value));
+                  setSelectedRepoIds(null);
+                }}
+                className="cursor-pointer rounded-md bg-white px-3 py-2 text-sm font-medium text-[#24324a]"
+              >
+                <option value={6}>6</option>
+                <option value={10}>10</option>
+                <option value={15}>15</option>
+                <option value={20}>20</option>
+              </select>
+            </div>
+          )}
+
+         {user && selectableRepos.length > 0 && (
+  <details className="mt-5 print:hidden">
+    <summary className="mx-auto w-fit cursor-pointer rounded-lg border border-slate-500 px-4 py-2 text-sm font-medium text-slate-200 transition hover:bg-white/10 hover:text-white">
+      Select repositories
+    </summary>
+
+    <div className="mx-auto mt-4 max-w-2xl rounded-xl bg-[#f7f8fa] p-4 text-left text-[#24324a] shadow-sm sm:p-5">
+      <div className="mb-4 flex items-center justify-between gap-4">
+        <p className="text-sm font-semibold">
+          Selected repositories
+        </p>
+
+        <span className="rounded-full bg-[#24324a] px-3 py-1 text-xs font-medium text-white">
+          {displayedRepos.length} / {repoLimit}
+        </span>
+      </div>
+
+      {displayedRepos.length > 0 && (
+        <div className="grid gap-2 sm:grid-cols-2">
+          {displayedRepos.map((repo) => (
+            <label
+              key={repo.id}
+              className="flex cursor-pointer items-center gap-3 rounded-lg border border-[#cbd3df] bg-white px-3 py-2.5 text-sm font-medium transition hover:border-[#40577d]"
+            >
+              <input
+                type="checkbox"
+                checked
+                onChange={() => handleRepoToggle(repo.id)}
+                className="size-4 cursor-pointer accent-[#40577d]"
+              />
+
+              <span className="min-w-0 wrap-break-word">
+                {repo.name}
+              </span>
+            </label>
+          ))}
+        </div>
+      )}
+
+      {otherRepos.length > 0 && (
+        <div className="mt-5 border-t border-[#d9dde5] pt-4">
+          <p className="mb-3 text-sm font-semibold text-gray-600">
+            Other repositories
+          </p>
+
+          <div className="max-h-48 overflow-y-auto pr-1">
+            <div className="grid gap-2 sm:grid-cols-2">
+              {otherRepos.map((repo) => (
+                <label
+                  key={repo.id}
+                  className={`flex items-center gap-3 rounded-lg border border-transparent px-3 py-2.5 text-sm transition ${
+                    displayedRepos.length >= repoLimit
+                      ? "cursor-not-allowed text-gray-400"
+                      : "cursor-pointer hover:border-[#cbd3df] hover:bg-white"
+                  }`}
+                >
+                  <input
+                    type="checkbox"
+                    checked={false}
+                    disabled={displayedRepos.length >= repoLimit}
+                    onChange={() => handleRepoToggle(repo.id)}
+                    className="size-4 cursor-pointer accent-[#40577d] disabled:cursor-not-allowed"
+                  />
+
+                  <span className="min-w-0 wrap-break-word">
+                    {repo.name}
+                  </span>
+                </label>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  </details>
 )}
-          {loading && <p className="mt-4 text-slate-300">Loading...</p>}
+          {loading && (
+            <p className="mt-4 text-slate-300">Loading...</p>
+          )}
 
           {error && <p className="mt-4 text-red-300">{error}</p>}
         </section>
@@ -133,12 +246,19 @@ const handleGenerate = (username: string) => {
                 </h2>
 
                 {user.bio && (
-                  <p className="leading-relaxed text-gray-700">{user.bio}</p>
+                  <p className="leading-relaxed text-gray-700">
+                    {user.bio}
+                  </p>
                 )}
 
                 <div className="mt-4 flex flex-wrap gap-x-6 gap-y-2 text-sm text-gray-500">
-                  {user.location && <p>Location: {user.location}</p>}
-                  {user.company && <p>Company: {user.company}</p>}
+                  {user.location && (
+                    <p>Location: {user.location}</p>
+                  )}
+
+                  {user.company && (
+                    <p>Company: {user.company}</p>
+                  )}
                 </div>
               </section>
             )}
@@ -168,24 +288,20 @@ const handleGenerate = (username: string) => {
             <div className="my-8 h-px bg-[#d9dde5]"></div>
 
             {/* Top repositories */}
-            {topRepos.length === 0 && (
+            {displayedRepos.length === 0 && (
               <p className="text-left text-gray-600">
                 No repositories to display.
               </p>
             )}
-            {topRepos.length > 0 && (
+
+            {displayedRepos.length > 0 && (
               <section className="w-full text-left">
                 <h2 className="mb-4 inline-block border-b-2 border-[#f4c95d] pb-1 text-xl font-semibold text-[#24324a]">
                   Top Repositories
                 </h2>
 
                 <div className="divide-y divide-gray-200">
-                  {user && topRepos.length === 0 && (
-                    <p className="text-left text-gray-600">
-                      No repositories to display.
-                    </p>
-                  )}
-                  {topRepos.map((repo) => (
+                  {displayedRepos.map((repo) => (
                     <article
                       key={repo.id}
                       className="w-full py-4 print:break-inside-avoid"
@@ -195,7 +311,7 @@ const handleGenerate = (username: string) => {
                           href={repo.html_url}
                           target="_blank"
                           rel="noreferrer"
-                          className="min-w-0 wrap-break-word  text-lg font-semibold text-[#40577d] hover:underline"
+                          className="min-w-0 wrap-break-word text-lg font-semibold text-[#40577d] hover:underline"
                         >
                           {repo.name}
                         </a>

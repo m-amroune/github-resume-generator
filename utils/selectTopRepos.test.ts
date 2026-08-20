@@ -180,4 +180,48 @@ it("sorts repositories by update date when none have stars", () => {
     "older-project",
   ]);
 });
+
+it("fills the requested limit with fallback repositories", () => {
+  const repos: GitHubRepo[] = [
+    {
+      id: 1,
+      name: "starred-project",
+      description: "Main project",
+      html_url: "https://github.com/test/starred-project",
+      stargazers_count: 5,
+      fork: false,
+      language: "TypeScript",
+      updated_at: "2026-08-01T12:00:00Z",
+    },
+    {
+      id: 2,
+      name: "recent-project",
+      description: "Recent project",
+      html_url: "https://github.com/test/recent-project",
+      stargazers_count: 0,
+      fork: false,
+      language: "JavaScript",
+      updated_at: "2026-08-10T12:00:00Z",
+    },
+    {
+      id: 3,
+      name: "older-project",
+      description: "Older project",
+      html_url: "https://github.com/test/older-project",
+      stargazers_count: 0,
+      fork: false,
+      language: "CSS",
+      updated_at: "2026-08-05T12:00:00Z",
+    },
+  ];
+
+  const result = selectTopRepos(repos, 3);
+
+  expect(result).toHaveLength(3);
+  expect(result.map((repo) => repo.name)).toEqual([
+    "starred-project",
+    "recent-project",
+    "older-project",
+  ]);
+});
 });
