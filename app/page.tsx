@@ -23,6 +23,7 @@ export default function Home() {
     queryFn: () => fetchResume(username),
     enabled: username !== "",
     retry: false,
+    staleTime: 5 * 60 * 1000,
   });
 
   const user = data?.user ?? null;

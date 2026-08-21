@@ -301,6 +301,79 @@ it("prevents selecting more repositories than the current limit", async () => {
   ).toBeDisabled();
 });
 
+it("uses cached resume data for a recently searched username", async () => {
+  mockFetch
+    .mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        user: {
+          login: "m-amroune",
+          avatar_url: "https://avatars.githubusercontent.com/u/1",
+          html_url: "https://github.com/m-amroune",
+          name: "Moustapha Amroune",
+          bio: null,
+          location: null,
+          company: null,
+        },
+        repos: [],
+      }),
+    } as Response)
+    .mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        user: {
+          login: "facebook",
+          avatar_url: "https://avatars.githubusercontent.com/u/2",
+          html_url: "https://github.com/facebook",
+          name: "Meta",
+          bio: null,
+          location: null,
+          company: null,
+        },
+        repos: [],
+      }),
+    } as Response);
+
+  renderHome();
+
+  const input = screen.getByPlaceholderText(
+    "Enter a GitHub username...",
+  );
+
+  const button = screen.getByRole("button", {
+    name: "Generate resume",
+  });
+
+  // First search
+  fireEvent.change(input, {
+    target: { value: "m-amroune" },
+  });
+
+  fireEvent.click(button);
+
+  await screen.findByText("m-amroune");
+
+  // Second search
+  fireEvent.change(input, {
+    target: { value: "facebook" },
+  });
+
+  fireEvent.click(button);
+
+  await screen.findByText("facebook");
+
+  // Return to the first username
+  fireEvent.change(input, {
+    target: { value: "m-amroune" },
+  });
+
+  fireEvent.click(button);
+
+  await screen.findByText("m-amroune");
+
+  expect(mockFetch).toHaveBeenCalledTimes(2);
+});
+
 it("changes the number of repositories displayed", async () => {
   const repos = Array.from({ length: 12 }, (_, index) => ({
     id: index + 1,
