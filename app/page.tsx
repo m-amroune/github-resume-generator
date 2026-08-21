@@ -48,7 +48,7 @@ export default function Home() {
   );
 
   // Compute top languages from repositories
-  const topLanguages = getTopLanguages(repos);
+ const topLanguages = getTopLanguages(displayedRepos);
 
   // Start the GitHub data query
   const handleGenerate = (username: string) => {
