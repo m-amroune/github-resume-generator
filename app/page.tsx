@@ -70,6 +70,26 @@ export default function Home() {
     }
   };
 
+  const handleRepoMove = (index: number, direction: "up" | "down") => {
+  const currentIds =
+    selectedRepoIds ?? topRepos.map((repo) => repo.id);
+
+  const targetIndex = direction === "up" ? index - 1 : index + 1;
+
+  if (targetIndex < 0 || targetIndex >= currentIds.length) {
+    return;
+  }
+
+  const nextIds = [...currentIds];
+
+  [nextIds[index], nextIds[targetIndex]] = [
+    nextIds[targetIndex],
+    nextIds[index],
+  ];
+
+  setSelectedRepoIds(nextIds);
+};
+
   return (
     <main className="min-h-screen bg-[#f3f1ec] px-4 py-10 print:bg-white print:p-0">
       <div className="mx-auto max-w-4xl space-y-8 print:w-full print:max-w-none print:space-y-0">
@@ -129,27 +149,51 @@ export default function Home() {
         </span>
       </div>
 
-      {displayedRepos.length > 0 && (
-        <div className="grid gap-2 sm:grid-cols-2">
-          {displayedRepos.map((repo) => (
-            <label
-              key={repo.id}
-              className="flex cursor-pointer items-center gap-3 rounded-lg border border-[#cbd3df] bg-white px-3 py-2.5 text-sm font-medium transition hover:border-[#40577d]"
-            >
-              <input
-                type="checkbox"
-                checked
-                onChange={() => handleRepoToggle(repo.id)}
-                className="size-4 cursor-pointer accent-[#40577d]"
-              />
+    {displayedRepos.length > 0 && (
+  <div className="grid gap-2 sm:grid-cols-2">
+    {displayedRepos.map((repo, index) => (
+      <div
+        key={repo.id}
+        className="flex items-center gap-2 rounded-lg border border-[#cbd3df] bg-white px-3 py-2.5 text-sm font-medium transition hover:border-[#40577d]"
+      >
+        <label className="flex min-w-0 flex-1 cursor-pointer items-center gap-3">
+          <input
+            type="checkbox"
+            checked
+            onChange={() => handleRepoToggle(repo.id)}
+            className="size-4 cursor-pointer accent-[#40577d]"
+          />
 
-              <span className="min-w-0 wrap-break-word">
-                {repo.name}
-              </span>
-            </label>
-          ))}
+          <span className="min-w-0 wrap-break-word">
+            {repo.name}
+          </span>
+        </label>
+
+        <div className="flex shrink-0 gap-1">
+          <button
+            type="button"
+            aria-label={`Move ${repo.name} up`}
+            disabled={index === 0}
+            onClick={() => handleRepoMove(index, "up")}
+            className="cursor-pointer rounded px-2 py-1 text-[#40577d] hover:bg-[#eef1f6] disabled:cursor-not-allowed disabled:opacity-30"
+          >
+            ↑
+          </button>
+
+          <button
+            type="button"
+            aria-label={`Move ${repo.name} down`}
+            disabled={index === displayedRepos.length - 1}
+            onClick={() => handleRepoMove(index, "down")}
+            className="cursor-pointer rounded px-2 py-1 text-[#40577d] hover:bg-[#eef1f6] disabled:cursor-not-allowed disabled:opacity-30"
+          >
+            ↓
+          </button>
         </div>
-      )}
+      </div>
+    ))}
+  </div>
+)}
 
       {otherRepos.length > 0 && (
         <div className="mt-5 border-t border-[#d9dde5] pt-4">
