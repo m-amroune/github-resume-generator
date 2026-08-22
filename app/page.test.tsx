@@ -444,6 +444,79 @@ it("computes skills from displayed repositories only", async () => {
     screen.getByRole("button", { name: "Generate resume" }),
   );
 
+  it("uses cached resume data for a recently searched username", async () => {
+  mockFetch
+    .mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        user: {
+          login: "m-amroune",
+          avatar_url: "https://avatars.githubusercontent.com/u/1",
+          html_url: "https://github.com/m-amroune",
+          name: "Moustapha Amroune",
+          bio: null,
+          location: null,
+          company: null,
+        },
+        repos: [],
+      }),
+    } as Response)
+    .mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        user: {
+          login: "facebook",
+          avatar_url: "https://avatars.githubusercontent.com/u/2",
+          html_url: "https://github.com/facebook",
+          name: "Facebook",
+          bio: null,
+          location: null,
+          company: null,
+        },
+        repos: [],
+      }),
+    } as Response);
+
+  renderHome();
+
+  const input = screen.getByPlaceholderText(
+    "Enter a GitHub username...",
+  );
+
+  const button = screen.getByRole("button", {
+    name: "Generate resume",
+  });
+
+  fireEvent.change(input, {
+    target: { value: "m-amroune" },
+  });
+  fireEvent.click(button);
+
+  expect(
+    await screen.findByText("m-amroune"),
+  ).toBeInTheDocument();
+
+  fireEvent.change(input, {
+    target: { value: "facebook" },
+  });
+  fireEvent.click(button);
+
+  expect(
+    await screen.findByText("facebook"),
+  ).toBeInTheDocument();
+
+  fireEvent.change(input, {
+    target: { value: "m-amroune" },
+  });
+  fireEvent.click(button);
+
+  expect(
+    await screen.findByText("m-amroune"),
+  ).toBeInTheDocument();
+
+  expect(mockFetch).toHaveBeenCalledTimes(2);
+});
+
 it("changes repository order in the resume", async () => {
   const repos = Array.from({ length: 3 }, (_, index) => ({
     id: index + 1,
