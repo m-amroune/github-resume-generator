@@ -427,7 +427,7 @@ it("computes skills from displayed repositories only", async () => {
         location: null,
         company: null,
       },
-      repos,
+      
     }),
   } as Response);
 
@@ -683,4 +683,137 @@ it("changes the number of repositories displayed", async () => {
   screen.getByRole("link", { name: "project-10" }),
 ).toBeInTheDocument();
 });
+
+it("resets repository choices for a new username while keeping the display limit", async () => {
+  const firstRepos = Array.from({ length: 12 }, (_, index) => ({
+    id: index + 1,
+    name: `project-${index + 1}`,
+    description: "Project description",
+    html_url: `https://github.com/test/project-${index + 1}`,
+    stargazers_count: 12 - index,
+    fork: false,
+    language: "TypeScript",
+    updated_at: "2026-08-05T12:00:00Z",
+  }));
+
+  const secondRepos = Array.from({ length: 12 }, (_, index) => ({
+    id: index + 1,
+    name: `facebook-project-${index + 1}`,
+    description: "Project description",
+    html_url: `https://github.com/facebook/project-${index + 1}`,
+    stargazers_count: 12 - index,
+    fork: false,
+    language: "JavaScript",
+    updated_at: "2026-08-05T12:00:00Z",
+  }));
+
+  mockFetch
+    .mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        user: {
+          login: "m-amroune",
+          avatar_url: "https://avatars.githubusercontent.com/u/1",
+          html_url: "https://github.com/m-amroune",
+          name: "Moustapha Amroune",
+          bio: null,
+          location: null,
+          company: null,
+        },
+        repos: firstRepos,
+      }),
+    } as Response)
+    .mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        user: {
+          login: "facebook",
+          avatar_url: "https://avatars.githubusercontent.com/u/2",
+          html_url: "https://github.com/facebook",
+          name: "Facebook",
+          bio: null,
+          location: null,
+          company: null,
+        },
+        repos: secondRepos,
+      }),
+    } as Response);
+
+  renderHome();
+
+  const input = screen.getByPlaceholderText(
+    "Enter a GitHub username...",
+  );
+
+  fireEvent.change(input, {
+    target: { value: "m-amroune" },
+  });
+
+  fireEvent.click(
+    screen.getByRole("button", { name: "Generate resume" }),
+  );
+
+  await screen.findByRole("link", { name: "project-1" });
+
+  fireEvent.change(
+    screen.getByLabelText("Repositories to display:"),
+    {
+      target: { value: "10" },
+    },
+  );
+
+  fireEvent.click(
+    screen.getByRole("button", { name: "Move project-2 up" }),
+  );
+
+  fireEvent.click(
+    screen.getByLabelText("project-1"),
+  );
+
+  fireEvent.click(
+    screen.getByLabelText("project-11"),
+  );
+
+  fireEvent.change(input, {
+    target: { value: "facebook" },
+  });
+
+  fireEvent.click(
+    screen.getByRole("button", { name: "Generate resume" }),
+  );
+
+  await screen.findByRole("link", {
+    name: "facebook-project-1",
+  });
+
+  expect(
+    screen.getByLabelText("Repositories to display:"),
+  ).toHaveValue("10");
+
+  const facebookRepoLinks = screen
+    .getAllByRole("link")
+    .filter((link) =>
+      link
+        .getAttribute("href")
+        ?.includes("github.com/facebook/project-"),
+    );
+
+  expect(facebookRepoLinks).toHaveLength(10);
+
+  expect(
+    facebookRepoLinks.map((link) => link.textContent),
+  ).toEqual([
+    "facebook-project-1",
+    "facebook-project-2",
+    "facebook-project-3",
+    "facebook-project-4",
+    "facebook-project-5",
+    "facebook-project-6",
+    "facebook-project-7",
+    "facebook-project-8",
+    "facebook-project-9",
+    "facebook-project-10",
+  ]);
+});
+
 })
