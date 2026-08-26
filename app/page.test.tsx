@@ -415,36 +415,7 @@ it("computes skills from displayed repositories only", async () => {
   ).not.toBeInTheDocument();
 });
 
-  mockFetch.mockResolvedValueOnce({
-    ok: true,
-    json: async () => ({
-      user: {
-        login: "m-amroune",
-        avatar_url: "https://avatars.githubusercontent.com/u/1",
-        html_url: "https://github.com/m-amroune",
-        name: "Moustapha Amroune",
-        bio: null,
-        location: null,
-        company: null,
-      },
-      
-    }),
-  } as Response);
-
-  renderHome();
-
-  fireEvent.change(
-    screen.getByPlaceholderText("Enter a GitHub username..."),
-    {
-      target: { value: "m-amroune" },
-    },
-  );
-
-  fireEvent.click(
-    screen.getByRole("button", { name: "Generate resume" }),
-  );
-
-  it("uses cached resume data for a recently searched username", async () => {
+it("uses cached resume data for a recently searched username", async () => {
   mockFetch
     .mockResolvedValueOnce({
       ok: true,
@@ -479,36 +450,46 @@ it("computes skills from displayed repositories only", async () => {
 
   renderHome();
 
-  const input = screen.getByPlaceholderText(
-    "Enter a GitHub username...",
+  fireEvent.change(
+    screen.getByPlaceholderText("Enter a GitHub username..."),
+    {
+      target: { value: "m-amroune" },
+    },
   );
 
-  const button = screen.getByRole("button", {
-    name: "Generate resume",
-  });
-
-  fireEvent.change(input, {
-    target: { value: "m-amroune" },
-  });
-  fireEvent.click(button);
+  fireEvent.click(
+    screen.getByRole("button", { name: "Generate resume" }),
+  );
 
   expect(
     await screen.findByText("m-amroune"),
   ).toBeInTheDocument();
 
-  fireEvent.change(input, {
-    target: { value: "facebook" },
-  });
-  fireEvent.click(button);
+  fireEvent.change(
+    screen.getByPlaceholderText("Enter a GitHub username..."),
+    {
+      target: { value: "facebook" },
+    },
+  );
+
+  fireEvent.click(
+    screen.getByRole("button", { name: "Generate resume" }),
+  );
 
   expect(
     await screen.findByText("facebook"),
   ).toBeInTheDocument();
 
-  fireEvent.change(input, {
-    target: { value: "m-amroune" },
-  });
-  fireEvent.click(button);
+  fireEvent.change(
+    screen.getByPlaceholderText("Enter a GitHub username..."),
+    {
+      target: { value: "m-amroune" },
+    },
+  );
+
+  fireEvent.click(
+    screen.getByRole("button", { name: "Generate resume" }),
+  );
 
   expect(
     await screen.findByText("m-amroune"),
@@ -741,19 +722,19 @@ it("resets repository choices for a new username while keeping the display limit
 
   renderHome();
 
-  const input = screen.getByPlaceholderText(
+  const firstSearchInput = screen.getByPlaceholderText(
     "Enter a GitHub username...",
   );
 
-  fireEvent.change(input, {
+  fireEvent.change(firstSearchInput, {
     target: { value: "m-amroune" },
   });
 
-  fireEvent.click(
-    screen.getByRole("button", { name: "Generate resume" }),
-  );
+  fireEvent.submit(firstSearchInput.closest("form")!);
 
-  await screen.findByRole("link", { name: "project-1" });
+  await screen.findByRole("link", {
+    name: "project-1",
+  });
 
   fireEvent.change(
     screen.getByLabelText("Repositories to display:"),
@@ -763,7 +744,9 @@ it("resets repository choices for a new username while keeping the display limit
   );
 
   fireEvent.click(
-    screen.getByRole("button", { name: "Move project-2 up" }),
+    screen.getByRole("button", {
+      name: "Move project-2 up",
+    }),
   );
 
   fireEvent.click(
@@ -774,13 +757,17 @@ it("resets repository choices for a new username while keeping the display limit
     screen.getByLabelText("project-11"),
   );
 
-  fireEvent.change(input, {
+  const secondSearchInput = screen.getByPlaceholderText(
+    "Enter a GitHub username...",
+  );
+
+  fireEvent.change(secondSearchInput, {
     target: { value: "facebook" },
   });
 
-  fireEvent.click(
-    screen.getByRole("button", { name: "Generate resume" }),
-  );
+  expect(secondSearchInput).toHaveValue("facebook");
+
+  fireEvent.submit(secondSearchInput.closest("form")!);
 
   await screen.findByRole("link", {
     name: "facebook-project-1",

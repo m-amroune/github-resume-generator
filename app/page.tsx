@@ -98,7 +98,7 @@ return (
     >
       {!user ? (
         <section className="w-full bg-[#24324a] text-white print:hidden">
-          <div className="mx-auto grid w-full max-w-6xl gap-8 px-6 py-8 lg:grid-cols-[minmax(0,1fr)_15rem] lg:items-start lg:gap-10 lg:px-10">
+          <div className="mx-auto grid w-full max-w-6xl gap-8 px-6 py-12 lg:grid-cols-[minmax(0,1fr)_15rem] lg:items-start lg:gap-10 lg:px-10">
             {/* Initial search */}
             <div className="flex flex-col items-center text-center lg:pt-4">
               <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
@@ -258,142 +258,145 @@ return (
               />
             </div>
 
-            <div className="mt-5 flex items-center justify-center gap-3">
-              <label
-                htmlFor="repo-limit"
-                className="text-sm text-slate-300"
-              >
-                Repositories to display:
-              </label>
+            {/* Repository controls */}
+            <div className="mt-5 flex flex-wrap items-center justify-center gap-4">
+              <div className="flex items-center gap-3">
+                <label
+                  htmlFor="repo-limit"
+                  className="text-sm text-slate-300"
+                >
+                  Repositories to display:
+                </label>
 
-              <select
-                id="repo-limit"
-                value={repoLimit}
-                onChange={(event) => {
-                  setRepoLimit(Number(event.target.value));
-                  setSelectedRepoIds(null);
-                }}
-                className="cursor-pointer rounded-md bg-white px-3 py-2 text-sm font-medium text-[#24324a]"
-              >
-                <option value={6}>6</option>
-                <option value={10}>10</option>
-                <option value={15}>15</option>
-                <option value={20}>20</option>
-              </select>
-            </div>
+                <select
+                  id="repo-limit"
+                  value={repoLimit}
+                  onChange={(event) => {
+                    setRepoLimit(Number(event.target.value));
+                    setSelectedRepoIds(null);
+                  }}
+                  className="cursor-pointer rounded-md bg-white px-3 py-2 text-sm font-medium text-[#24324a]"
+                >
+                  <option value={6}>6</option>
+                  <option value={10}>10</option>
+                  <option value={15}>15</option>
+                  <option value={20}>20</option>
+                </select>
+              </div>
 
-            {selectableRepos.length > 0 && (
-              <details className="mt-5">
-                <summary className="mx-auto w-fit cursor-pointer rounded-lg border border-slate-500 px-4 py-2 text-sm font-medium text-slate-200 transition hover:bg-white/10 hover:text-white">
-                  Select repositories
-                </summary>
+              {selectableRepos.length > 0 && (
+                <details className="relative">
+                  <summary className="cursor-pointer list-none rounded-lg border border-slate-500 px-4 py-2 text-sm font-medium text-slate-200 transition hover:bg-white/10 hover:text-white">
+                    Select repositories
+                  </summary>
 
-                <div className="mx-auto mt-4 max-w-2xl rounded-xl bg-[#f7f8fa] p-4 text-left text-[#24324a] shadow-sm sm:p-5">
-                  <div className="mb-4 flex items-center justify-between gap-4">
-                    <p className="text-sm font-semibold">
-                      Selected repositories
-                    </p>
-
-                    <span className="rounded-full bg-[#24324a] px-3 py-1 text-xs font-medium text-white">
-                      {displayedRepos.length} / {repoLimit}
-                    </span>
-                  </div>
-
-                  {displayedRepos.length > 0 && (
-                    <div className="grid gap-2 sm:grid-cols-2">
-                      {displayedRepos.map((repo, index) => (
-                        <div
-                          key={repo.id}
-                          className="flex items-center gap-2 rounded-lg border border-[#cbd3df] bg-white px-3 py-2.5 text-sm font-medium transition hover:border-[#40577d]"
-                        >
-                          <label className="flex min-w-0 flex-1 cursor-pointer items-center gap-3">
-                            <input
-                              type="checkbox"
-                              checked
-                              onChange={() =>
-                                handleRepoToggle(repo.id)
-                              }
-                              className="size-4 cursor-pointer accent-[#40577d]"
-                            />
-
-                            <span className="min-w-0 wrap-break-word">
-                              {repo.name}
-                            </span>
-                          </label>
-
-                          <div className="flex shrink-0 gap-1">
-                            <button
-                              type="button"
-                              aria-label={`Move ${repo.name} up`}
-                              disabled={index === 0}
-                              onClick={() =>
-                                handleRepoMove(index, "up")
-                              }
-                              className="cursor-pointer rounded px-2 py-1 text-[#40577d] hover:bg-[#eef1f6] disabled:cursor-not-allowed disabled:opacity-30"
-                            >
-                              ↑
-                            </button>
-
-                            <button
-                              type="button"
-                              aria-label={`Move ${repo.name} down`}
-                              disabled={
-                                index === displayedRepos.length - 1
-                              }
-                              onClick={() =>
-                                handleRepoMove(index, "down")
-                              }
-                              className="cursor-pointer rounded px-2 py-1 text-[#40577d] hover:bg-[#eef1f6] disabled:cursor-not-allowed disabled:opacity-30"
-                            >
-                              ↓
-                            </button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-
-                  {otherRepos.length > 0 && (
-                    <div className="mt-5 border-t border-[#d9dde5] pt-4">
-                      <p className="mb-3 text-sm font-semibold text-gray-600">
-                        Other repositories
+                  <div className="absolute left-1/2 z-20 mt-3 w-[min(42rem,calc(100vw-2rem))] -translate-x-1/2 rounded-xl bg-[#f7f8fa] p-4 text-left text-[#24324a] shadow-xl sm:p-5">
+                    <div className="mb-4 flex items-center justify-between gap-4">
+                      <p className="text-sm font-semibold">
+                        Selected repositories
                       </p>
 
-                      <div className="max-h-48 overflow-y-auto pr-1">
-                        <div className="grid gap-2 sm:grid-cols-2">
-                          {otherRepos.map((repo) => (
-                            <label
-                              key={repo.id}
-                              className={`flex items-center gap-3 rounded-lg border border-transparent px-3 py-2.5 text-sm transition ${
-                                displayedRepos.length >= repoLimit
-                                  ? "cursor-not-allowed text-gray-400"
-                                  : "cursor-pointer hover:border-[#cbd3df] hover:bg-white"
-                              }`}
-                            >
+                      <span className="rounded-full bg-[#24324a] px-3 py-1 text-xs font-medium text-white">
+                        {displayedRepos.length} / {repoLimit}
+                      </span>
+                    </div>
+
+                    {displayedRepos.length > 0 && (
+                      <div className="grid gap-2 sm:grid-cols-2">
+                        {displayedRepos.map((repo, index) => (
+                          <div
+                            key={repo.id}
+                            className="flex items-center gap-2 rounded-lg border border-[#cbd3df] bg-white px-3 py-2.5 text-sm font-medium transition hover:border-[#40577d]"
+                          >
+                            <label className="flex min-w-0 flex-1 cursor-pointer items-center gap-3">
                               <input
                                 type="checkbox"
-                                checked={false}
-                                disabled={
-                                  displayedRepos.length >= repoLimit
-                                }
+                                checked
                                 onChange={() =>
                                   handleRepoToggle(repo.id)
                                 }
-                                className="size-4 cursor-pointer accent-[#40577d] disabled:cursor-not-allowed"
+                                className="size-4 cursor-pointer accent-[#40577d]"
                               />
 
                               <span className="min-w-0 wrap-break-word">
                                 {repo.name}
                               </span>
                             </label>
-                          ))}
+
+                            <div className="flex shrink-0 gap-1">
+                              <button
+                                type="button"
+                                aria-label={`Move ${repo.name} up`}
+                                disabled={index === 0}
+                                onClick={() =>
+                                  handleRepoMove(index, "up")
+                                }
+                                className="cursor-pointer rounded px-2 py-1 text-[#40577d] hover:bg-[#eef1f6] disabled:cursor-not-allowed disabled:opacity-30"
+                              >
+                                ↑
+                              </button>
+
+                              <button
+                                type="button"
+                                aria-label={`Move ${repo.name} down`}
+                                disabled={
+                                  index === displayedRepos.length - 1
+                                }
+                                onClick={() =>
+                                  handleRepoMove(index, "down")
+                                }
+                                className="cursor-pointer rounded px-2 py-1 text-[#40577d] hover:bg-[#eef1f6] disabled:cursor-not-allowed disabled:opacity-30"
+                              >
+                                ↓
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {otherRepos.length > 0 && (
+                      <div className="mt-5 border-t border-[#d9dde5] pt-4">
+                        <p className="mb-3 text-sm font-semibold text-gray-600">
+                          Other repositories
+                        </p>
+
+                        <div className="max-h-48 overflow-y-auto pr-1">
+                          <div className="grid gap-2 sm:grid-cols-2">
+                            {otherRepos.map((repo) => (
+                              <label
+                                key={repo.id}
+                                className={`flex items-center gap-3 rounded-lg border border-transparent px-3 py-2.5 text-sm transition ${
+                                  displayedRepos.length >= repoLimit
+                                    ? "cursor-not-allowed text-gray-400"
+                                    : "cursor-pointer hover:border-[#cbd3df] hover:bg-white"
+                                }`}
+                              >
+                                <input
+                                  type="checkbox"
+                                  checked={false}
+                                  disabled={
+                                    displayedRepos.length >= repoLimit
+                                  }
+                                  onChange={() =>
+                                    handleRepoToggle(repo.id)
+                                  }
+                                  className="size-4 cursor-pointer accent-[#40577d] disabled:cursor-not-allowed"
+                                />
+
+                                <span className="min-w-0 wrap-break-word">
+                                  {repo.name}
+                                </span>
+                              </label>
+                            ))}
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  )}
-                </div>
-              </details>
-            )}
+                    )}
+                  </div>
+                </details>
+              )}
+            </div>
 
             {loading && (
               <p className="mt-4 text-slate-300">
