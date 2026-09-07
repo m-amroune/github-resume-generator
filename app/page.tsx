@@ -9,6 +9,8 @@ import { getDaysAgo } from "@/utils/getDaysAgo";
 import { selectTopRepos, type GitHubRepo } from "@/utils/selectTopRepos";
 import { getTopLanguages } from "@/utils/getTopLanguages";
 
+const TWELVE_MONTHS_AGO = Date.now() - 365 * 24 * 60 * 60 * 1000;
+
 export default function Home() {
   const [username, setUsername] = useState("");
   const [repoLimit, setRepoLimit] = useState(6);
@@ -48,8 +50,10 @@ export default function Home() {
       !displayedRepos.some((selectedRepo) => selectedRepo.id === repo.id),
   );
 
-  // Compute top languages from repositories
-  const topLanguages = getTopLanguages(displayedRepos);
+  // Compute top languages from all non-fork repositories
+  const topLanguages = getTopLanguages(selectableRepos);
+
+  // Start the GitHub data query
 
   // Start the GitHub data query
   const handleGenerate = (username: string) => {
@@ -177,7 +181,7 @@ export default function Home() {
                       Top Repositories
                     </p>
 
-                    <div className="divide-y divide-gray-200">
+                    <div className="space-y-3">
                       <div className="py-1.5">
                         <div className="flex items-center justify-between gap-2">
                           <div className="h-2 w-16 rounded bg-[#cbd3df]" />
@@ -337,13 +341,10 @@ export default function Home() {
                           >
                             Reset selection
                           </button>
-                              
-        </div>
-      )}
+                        </div>
+                      )}
 
-     
-
-      {otherRepos.length > 0 && (
+                      {otherRepos.length > 0 && (
                         <div className="mt-5 border-t border-[#d9dde5] pt-4">
                           <p className="mb-3 text-sm font-semibold text-gray-600">
                             Other repositories
@@ -399,43 +400,115 @@ export default function Home() {
             </div>
 
             {/* Resume */}
-            <div className="rounded-2xl bg-white p-5 text-center shadow-lg sm:p-10 print:rounded-none print:p-0 print:text-sm print:shadow-none">
+            <div className="rounded-2xl bg-white p-5 shadow-lg sm:p-10 md:grid md:grid-cols-[16rem_minmax(0,1fr)] md:gap-x-8 print:rounded-none print:p-0 print:text-sm print:shadow-none">
               {/* User header */}
-              <div className="flex flex-col items-center gap-4 border-l-4 border-[#24324a] bg-[#f7f8fa] p-6 text-center sm:flex-row sm:gap-6 sm:text-left print:flex-row print:gap-3 print:p-3 print:text-left">
+              <aside className="bg-[#eef2f6] p-6 text-center md:col-start-1 md:row-span-2">
                 <Image
                   src={user.avatar_url}
                   alt={`${user.login} avatar`}
                   width={80}
                   height={80}
-                  className="rounded-full border print:h-14 print:w-14"
+                  className="mx-auto rounded-full border print:h-14 print:w-14"
                 />
 
-                <div className="flex flex-col space-y-1 text-center sm:text-left print:text-left">
-                  <p className="text-2xl font-semibold print:text-xl">
+                <div className="mt-4">
+                  <p className="text-2xl font-semibold text-[#18233a] print:text-xl">
                     {user.login}
                   </p>
 
                   {user.name && (
-                    <p className="text-sm text-gray-700">{user.name}</p>
+                    <p className="mt-1 text-sm text-gray-700">{user.name}</p>
                   )}
 
                   <a
                     href={user.html_url}
                     target="_blank"
                     rel="noreferrer"
-                    className="text-sm font-medium text-[#40577d] hover:underline"
+                    className="mt-2 inline-block text-sm font-medium text-[#356fd3] hover:underline"
                   >
                     View GitHub profile
                   </a>
-                </div>
-              </div>
 
-              <div className="my-8 h-px bg-[#d9dde5] print:my-2.5" />
+                  <div className="mt-5 space-y-2 text-sm text-[#4f5d6d]">
+                    {user.location && <p>{user.location}</p>}
+                    {user.company && <p>{user.company}</p>}
+                  </div>
+
+                  <div className="mt-8 border-t border-[#cbd3df] pt-6 text-left">
+                    <h2 className="mb-4 border-b border-[#d9dde5] pb-2 text-xl font-semibold text-[#18233a] print:mb-2 print:text-lg">
+                      GitHub activity
+                    </h2>
+
+                    <div className="space-y-3 text-sm text-[#4f5d6d]">
+                      <div className="flex justify-between gap-4">
+                        <span>Public repositories</span>
+                        <strong className="font-semibold text-[#18233a]">
+                          {user.public_repos}
+                        </strong>
+                      </div>
+
+                      <div className="flex justify-between gap-4">
+                        <span>Total stars</span>
+                        <strong className="font-semibold text-[#18233a]">
+                          {selectableRepos.reduce(
+                            (total, repo) => total + repo.stargazers_count,
+                            0,
+                          )}
+                        </strong>
+                      </div>
+
+                      <div className="flex justify-between gap-4">
+                        <span>Total forks</span>
+                        <strong className="text-[#24324a]">
+                          {selectableRepos.reduce(
+                            (total, repo) => total + repo.forks_count,
+                            0,
+                          )}
+                        </strong>
+                      </div>
+
+                      <div className="flex justify-between gap-4">
+                        <span>Updated in 12 months</span>
+                        <strong className="font-semibold text-[#18233a]">
+                          {
+                            selectableRepos.filter(
+                              (repo) =>
+                                new Date(repo.updated_at).getTime() >=
+                                TWELVE_MONTHS_AGO,
+                            ).length
+                          }
+                        </strong>
+                      </div>
+                    </div>
+                  </div>
+
+                  {topLanguages.length > 0 && (
+                    <div className="mt-8 border-t border-[#d9dde5] pt-6 text-left">
+                      <h2 className="mb-4 border-b border-[#d9dde5] pb-2 text-xl font-semibold text-[#18233a] print:mb-2 print:text-lg">
+                        Skills
+                      </h2>
+
+                      <ul className="flex flex-wrap gap-2">
+                        {topLanguages.map(([language, count]) => (
+                          <li
+                            key={language}
+                            className="rounded-full bg-[#dfe7f2] px-3 py-1.5 text-sm font-medium text-[#34445e]"
+                          >
+                            {language} ({count})
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+              </aside>
+
+              <div className="my-8 h-px bg-[#d9dde5] md:hidden print:my-2.5" />
 
               {/* About */}
               {(user.bio || user.location || user.company) && (
-                <section className="w-full border-l-4 border-[#24324a] pl-5 text-left print:pl-3">
-                  <h2 className="mb-4 inline-block border-b-2 border-[#f4c95d] pb-1 text-xl font-semibold text-[#24324a] print:mb-2 print:text-lg">
+                <section className="w-full text-left md:col-start-2">
+                  <h2 className="mb-4 border-b border-[#d9dde5] pb-2 text-xl font-semibold text-[#18233a] print:mb-2 print:text-lg">
                     About
                   </h2>
 
@@ -444,38 +517,10 @@ export default function Home() {
                       {user.bio}
                     </p>
                   )}
-
-                  <div className="mt-4 flex flex-wrap gap-x-6 gap-y-2 text-sm text-gray-500 print:mt-2 print:gap-y-1">
-                    {user.location && <p>Location: {user.location}</p>}
-
-                    {user.company && <p>Company: {user.company}</p>}
-                  </div>
                 </section>
               )}
 
-              <div className="my-8 h-px bg-[#d9dde5] print:my-2.5" />
-
-              {/* Skills */}
-              {topLanguages.length > 0 && (
-                <section className="w-full text-left">
-                  <h2 className="mb-4 inline-block border-b-2 border-[#f4c95d] pb-1 text-xl font-semibold text-[#24324a] print:mb-2 print:text-lg">
-                    Skills
-                  </h2>
-
-                  <ul className="flex flex-wrap gap-3 print:gap-2">
-                    {topLanguages.map(([language, count]) => (
-                      <li
-                        key={language}
-                        className="rounded-full border border-[#f4c95d] bg-[#fff8e1] px-4 py-2 text-base font-medium text-[#24324a] print:px-2.5 print:py-1 print:text-sm"
-                      >
-                        {language} ({count})
-                      </li>
-                    ))}
-                  </ul>
-                </section>
-              )}
-
-              <div className="my-8 h-px bg-[#d9dde5] print:my-2.5" />
+              <div className="my-8 h-px bg-[#d9dde5] md:hidden print:my-2.5" />
 
               {/* Top repositories */}
               {displayedRepos.length === 0 && (
@@ -485,16 +530,16 @@ export default function Home() {
               )}
 
               {displayedRepos.length > 0 && (
-                <section className="w-full text-left">
-                  <h2 className="mb-4 inline-block border-b-2 border-[#f4c95d] pb-1 text-xl font-semibold text-[#24324a] print:mb-2 print:text-lg">
+                <section className="w-full text-left md:col-start-2">
+                  <h2 className="mb-4 border-b border-[#d9dde5] pb-2 text-xl font-semibold text-[#18233a] print:mb-2 print:text-lg">
                     Top Repositories
                   </h2>
 
-                  <div className="divide-y divide-gray-200">
+                  <div className="space-y-3">
                     {displayedRepos.map((repo) => (
                       <article
                         key={repo.id}
-                        className="w-full py-4 print:break-inside-avoid print:py-3"
+                        className="w-full rounded-lg border border-[#d9e0e8] bg-white p-4 print:break-inside-avoid print:p-3"
                       >
                         <div className="flex flex-col items-start gap-3 md:flex-row md:justify-between md:gap-4 print:flex-row print:justify-between print:gap-3">
                           <a
@@ -506,9 +551,23 @@ export default function Home() {
                             {repo.name}
                           </a>
 
-                          <span className="shrink-0 rounded-full bg-[#fff8e1] px-3 py-1 text-sm font-medium text-[#24324a] print:px-2.5 print:py-1">
-                            ⭐ {repo.stargazers_count}
-                          </span>
+                          <div className="flex shrink-0 items-center gap-3 text-sm font-medium text-[#5f6b7a]">
+                            <span>★ {repo.stargazers_count}</span>
+
+                            <span className="flex items-center gap-1">
+                              <svg
+                                viewBox="0 0 16 16"
+                                width="14"
+                                height="14"
+                                aria-hidden="true"
+                                fill="currentColor"
+                              >
+                                <path d="M5 3.25a2.25 2.25 0 1 1-3 2.122V6.5A2.5 2.5 0 0 0 4.5 9h2v1.628a2.251 2.251 0 1 1-1 0V9h2A2.5 2.5 0 0 0 10 6.5V5.372a2.25 2.25 0 1 1 1 0V6.5A3.5 3.5 0 0 1 7.5 10h-1v.628a2.25 2.25 0 1 1-1 0V10h-1A3.5 3.5 0 0 1 1 6.5V5.372A2.25 2.25 0 0 1 5 3.25Z" />
+                              </svg>
+
+                              {repo.forks_count}
+                            </span>
+                          </div>
                         </div>
 
                         {repo.description && (
@@ -517,9 +576,9 @@ export default function Home() {
                           </p>
                         )}
 
-                        <div className="mt-4 flex flex-wrap items-center gap-3 border-t border-gray-200 pt-3 text-sm text-gray-600 print:mt-2 print:gap-3 print:pt-2">
+                        <div className="mt-3 flex flex-wrap items-center gap-3 text-sm text-[#667085] print:mt-2 print:gap-3">
                           {repo.language && (
-                            <span className="rounded-md border border-[#cbd3df] bg-[#eef1f6] px-2.5 py-1 font-medium text-[#40577d]">
+                            <span className="rounded-full bg-[#e8eef6] px-2.5 py-1 text-xs font-medium text-[#40577d]">
                               {repo.language}
                             </span>
                           )}
