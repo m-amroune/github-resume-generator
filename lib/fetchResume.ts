@@ -6,6 +6,9 @@ export type GitHubUser = {
   bio: string | null;
   location: string | null;
   company: string | null;
+  blog: string | null;
+  created_at: string;
+  public_repos: number;
 };
 
 export type GitHubRepo = {
@@ -16,7 +19,9 @@ export type GitHubRepo = {
   stargazers_count: number;
   fork: boolean;
   language: string | null;
+  topics: string[];
   updated_at: string;
+  forks_count: number;
 };
 
 export type ResumeResponse = {
@@ -24,16 +29,14 @@ export type ResumeResponse = {
   repos: GitHubRepo[];
 };
 
-export async function fetchResume(
-  username: string,
-): Promise<ResumeResponse> {
- let res: Response;
+export async function fetchResume(username: string): Promise<ResumeResponse> {
+  let res: Response;
 
-try {
-  res = await fetch(`/api/resume/${username}`);
-} catch {
-  throw new Error("Server error");
-}
+  try {
+    res = await fetch(`/api/resume/${username}`);
+  } catch {
+    throw new Error("Server error");
+  }
 
   if (!res.ok) {
     const data = (await res.json()) as { error?: string };

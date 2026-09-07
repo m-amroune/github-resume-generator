@@ -5,9 +5,12 @@ export type GitHubRepo = {
   description: string | null;
   html_url: string;
   stargazers_count: number;
+   forks_count: number;
   fork: boolean;
   language: string | null;
+  topics: string[];
   updated_at: string;
+ 
 };
 
 export const selectTopRepos = (
