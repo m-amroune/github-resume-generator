@@ -6,6 +6,8 @@ export type GitHubUser = {
   bio: string | null;
   location: string | null;
   company: string | null;
+  blog: string | null;
+  created_at: string;
   public_repos: number;
 };
 

@@ -3,12 +3,109 @@ import {
   fireEvent,
   render,
   screen,
+  within,
 } from "@testing-library/react";
-import Home from "./page";
 import {
   QueryClient,
   QueryClientProvider,
 } from "@tanstack/react-query";
+import Home from "./page";
+
+type MockUser = {
+  login: string;
+  avatar_url: string;
+  html_url: string;
+  name: string | null;
+  bio: string | null;
+  location: string | null;
+  company: string | null;
+  blog: string | null;
+  created_at: string;
+  public_repos: number;
+};
+
+type MockRepo = {
+  id: number;
+  name: string;
+  description: string | null;
+  html_url: string;
+  stargazers_count: number;
+  forks_count: number;
+  fork: boolean;
+  language: string | null;
+  topics: string[];
+  updated_at: string;
+};
+
+const mockFetch = jest.fn() as jest.MockedFunction<typeof fetch>;
+
+global.fetch = mockFetch;
+
+const baseUser: MockUser = {
+  login: "m-amroune",
+  avatar_url: "https://avatars.githubusercontent.com/u/1",
+  html_url: "https://github.com/m-amroune",
+  name: "Moustapha Amroune",
+  bio: null,
+  location: null,
+  company: null,
+  blog: null,
+  created_at: "2020-01-01T00:00:00Z",
+  public_repos: 48,
+};
+
+function createUser(
+  overrides: Partial<MockUser> = {},
+): MockUser {
+  return {
+    ...baseUser,
+    ...overrides,
+  };
+}
+
+type CreateReposOptions = {
+  owner?: string;
+  prefix?: string;
+  language?: string | ((index: number) => string);
+};
+
+function createRepos(
+  count: number,
+  {
+    owner = "test",
+    prefix = "project",
+    language = "TypeScript",
+  }: CreateReposOptions = {},
+): MockRepo[] {
+  return Array.from({ length: count }, (_, index) => ({
+    id: index + 1,
+    name: `${prefix}-${index + 1}`,
+    description: "Project description",
+    html_url: `https://github.com/${owner}/${prefix}-${index + 1}`,
+    stargazers_count: count - index,
+    forks_count: index + 1,
+    fork: false,
+    language:
+      typeof language === "function"
+        ? language(index)
+        : language,
+    topics: [],
+    updated_at: "2026-08-05T12:00:00Z",
+  }));
+}
+
+function mockSuccessfulResponse(
+  user: MockUser,
+  repos: MockRepo[],
+) {
+  mockFetch.mockResolvedValueOnce({
+    ok: true,
+    json: async () => ({
+      user,
+      repos,
+    }),
+  } as Response);
+}
 
 function renderHome() {
   const queryClient = new QueryClient({
@@ -26,14 +123,31 @@ function renderHome() {
   );
 }
 
-const mockFetch = jest.fn() as jest.MockedFunction<typeof fetch>;
+function submitUsername(username: string) {
+  const input = screen.getByPlaceholderText(
+    "Enter a GitHub username...",
+  );
 
-global.fetch = mockFetch;
+  fireEvent.change(input, {
+    target: { value: username },
+  });
+
+  fireEvent.submit(input.closest("form")!);
+}
+
+function openRepositoryPicker() {
+  fireEvent.click(
+    screen.getByText("Choose repositories"),
+  );
+}
 
 describe("Home", () => {
   beforeEach(() => {
-      cleanup();
     mockFetch.mockReset();
+  });
+
+  afterEach(() => {
+    cleanup();
   });
 
   it("displays loading while generating the resume", () => {
@@ -41,768 +155,448 @@ describe("Home", () => {
       () => new Promise<Response>(() => {}),
     );
 
-renderHome();
+    renderHome();
 
-    fireEvent.change(
-      screen.getByPlaceholderText("Enter a GitHub username..."),
-      {
-        target: { value: "m-amroune" },
-      },
+    submitUsername("m-amroune");
+
+    expect(
+      screen.getByText("Loading..."),
+    ).toBeInTheDocument();
+  });
+
+  it("displays the profile after a successful response", async () => {
+    mockSuccessfulResponse(
+      createUser({
+        bio: "Front-end developer",
+        location: "France",
+      }),
+      [],
+    );
+
+    renderHome();
+
+    submitUsername("m-amroune");
+
+    expect(
+      await screen.findByText("m-amroune"),
+    ).toBeInTheDocument();
+
+    expect(
+      screen.getByText("Front-end developer"),
+    ).toBeInTheDocument();
+  });
+
+  it("displays the API error message", async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: false,
+      json: async () => ({
+        error: "User not found",
+      }),
+    } as Response);
+
+    renderHome();
+
+    submitUsername("unknown-user");
+
+    expect(
+      await screen.findByText("User not found"),
+    ).toBeInTheDocument();
+  });
+
+  it("displays a message when there are no repositories", async () => {
+    mockSuccessfulResponse(
+      createUser(),
+      [],
+    );
+
+    renderHome();
+
+    submitUsername("m-amroune");
+
+    expect(
+      await screen.findByText(
+        "No repositories to display.",
+      ),
+    ).toBeInTheDocument();
+  });
+
+  it("removes a repository from the resume when it is deselected", async () => {
+    const repos = createRepos(7);
+
+    mockSuccessfulResponse(
+      createUser(),
+      repos,
+    );
+
+    renderHome();
+
+    submitUsername("m-amroune");
+
+    await screen.findByRole("link", {
+      name: "project-1",
+    });
+
+    openRepositoryPicker();
+
+    fireEvent.click(
+      screen.getByRole("checkbox", {
+        name: "project-1",
+      }),
+    );
+
+    expect(
+      screen.queryByRole("link", {
+        name: "project-1",
+      }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("adds another repository after one is deselected", async () => {
+    const repos = createRepos(7);
+
+    mockSuccessfulResponse(
+      createUser(),
+      repos,
+    );
+
+    renderHome();
+
+    submitUsername("m-amroune");
+
+    await screen.findByRole("link", {
+      name: "project-1",
+    });
+
+    openRepositoryPicker();
+
+    fireEvent.click(
+      screen.getByRole("checkbox", {
+        name: "project-1",
+      }),
     );
 
     fireEvent.click(
-      screen.getByRole("button", { name: "Generate resume" }),
+      screen.getByRole("checkbox", {
+        name: "project-7",
+      }),
     );
 
-    expect(screen.getByText("Loading...")).toBeInTheDocument();
+    expect(
+      screen.queryByRole("link", {
+        name: "project-1",
+      }),
+    ).not.toBeInTheDocument();
+
+    expect(
+      screen.getByRole("link", {
+        name: "project-7",
+      }),
+    ).toBeInTheDocument();
   });
-  it("displays the profile after a successful response", async () => {
-  mockFetch.mockResolvedValueOnce({
-    ok: true,
-    json: async () => ({
-      user: {
-        login: "m-amroune",
-        avatar_url: "https://avatars.githubusercontent.com/u/1",
-        html_url: "https://github.com/m-amroune",
-        name: "Moustapha Amroune",
-        bio: "Front-end developer",
-        location: "France",
-        company: null,
-      },
-      repos: [],
-    }),
-  } as Response);
 
-renderHome();
+  it("prevents selecting more repositories than the current limit", async () => {
+    const repos = createRepos(7);
 
-  fireEvent.change(
-    screen.getByPlaceholderText("Enter a GitHub username..."),
-    {
-      target: { value: "m-amroune" },
-    },
-  );
-
-  fireEvent.click(
-    screen.getByRole("button", { name: "Generate resume" }),
-  );
-
-  expect(await screen.findByText("m-amroune")).toBeInTheDocument();
-  expect(screen.getByText("Front-end developer")).toBeInTheDocument();
-});
-it("displays the API error message", async () => {
-  mockFetch.mockResolvedValueOnce({
-    ok: false,
-    json: async () => ({
-      error: "User not found",
-    }),
-  } as Response);
-
-  renderHome();
-
-  fireEvent.change(
-    screen.getByPlaceholderText("Enter a GitHub username..."),
-    {
-      target: { value: "unknown-user" },
-    },
-  );
-
-  fireEvent.click(
-    screen.getByRole("button", { name: "Generate resume" }),
-  );
-
-  expect(await screen.findByText("User not found")).toBeInTheDocument();
-});
-it("displays a message when there are no repositories", async () => {
-  mockFetch.mockResolvedValueOnce({
-    ok: true,
-    json: async () => ({
-      user: {
-        login: "m-amroune",
-        avatar_url: "https://avatars.githubusercontent.com/u/1",
-        html_url: "https://github.com/m-amroune",
-        name: "Moustapha Amroune",
-        bio: null,
-        location: null,
-        company: null,
-      },
-      repos: [],
-    }),
-  } as Response);
-
-  renderHome();
-
-  fireEvent.change(
-    screen.getByPlaceholderText("Enter a GitHub username..."),
-    {
-      target: { value: "m-amroune" },
-    },
-  );
-
-  fireEvent.click(
-    screen.getByRole("button", { name: "Generate resume" }),
-  );
-
-  expect(
-    await screen.findByText("No repositories to display."),
-  ).toBeInTheDocument();
-});
-
-it("removes a repository from the resume when it is deselected", async () => {
-  const repos = Array.from({ length: 7 }, (_, index) => ({
-    id: index + 1,
-    name: `project-${index + 1}`,
-    description: "Project description",
-    html_url: `https://github.com/test/project-${index + 1}`,
-    stargazers_count: 7 - index,
-    fork: false,
-    language: "TypeScript",
-    updated_at: "2026-08-05T12:00:00Z",
-  }));
-
-  mockFetch.mockResolvedValueOnce({
-    ok: true,
-    json: async () => ({
-      user: {
-        login: "m-amroune",
-        avatar_url: "https://avatars.githubusercontent.com/u/1",
-        html_url: "https://github.com/m-amroune",
-        name: "Moustapha Amroune",
-        bio: null,
-        location: null,
-        company: null,
-      },
+    mockSuccessfulResponse(
+      createUser(),
       repos,
-    }),
-  } as Response);
+    );
 
-  renderHome();
+    renderHome();
 
-  fireEvent.change(
-    screen.getByPlaceholderText("Enter a GitHub username..."),
-    {
-      target: { value: "m-amroune" },
-    },
-  );
+    submitUsername("m-amroune");
 
-  fireEvent.click(
-    screen.getByRole("button", { name: "Generate resume" }),
-  );
+    await screen.findByRole("link", {
+      name: "project-1",
+    });
 
-  await screen.findByRole("link", { name: "project-1" });
+    openRepositoryPicker();
 
-  fireEvent.click(
-    screen.getByRole("checkbox", { name: "project-1" }),
-  );
-
-  expect(
-    screen.queryByRole("link", { name: "project-1" }),
-  ).not.toBeInTheDocument();
-});
-
-it("adds another repository to the resume after one is deselected", async () => {
-  const repos = Array.from({ length: 7 }, (_, index) => ({
-    id: index + 1,
-    name: `project-${index + 1}`,
-    description: "Project description",
-    html_url: `https://github.com/test/project-${index + 1}`,
-    stargazers_count: 7 - index,
-    fork: false,
-    language: "TypeScript",
-    updated_at: "2026-08-05T12:00:00Z",
-  }));
-
-  mockFetch.mockResolvedValueOnce({
-    ok: true,
-    json: async () => ({
-      user: {
-        login: "m-amroune",
-        avatar_url: "https://avatars.githubusercontent.com/u/1",
-        html_url: "https://github.com/m-amroune",
-        name: "Moustapha Amroune",
-        bio: null,
-        location: null,
-        company: null,
-      },
-      repos,
-    }),
-  } as Response);
-
-  renderHome();
-
-  fireEvent.change(
-    screen.getByPlaceholderText("Enter a GitHub username..."),
-    {
-      target: { value: "m-amroune" },
-    },
-  );
-
-  fireEvent.click(
-    screen.getByRole("button", { name: "Generate resume" }),
-  );
-
-  await screen.findByRole("link", { name: "project-1" });
-
-  fireEvent.click(
-    screen.getByRole("checkbox", { name: "project-1" }),
-  );
-
-  fireEvent.click(
-    screen.getByRole("checkbox", { name: "project-7" }),
-  );
-
-  expect(
-    screen.queryByRole("link", { name: "project-1" }),
-  ).not.toBeInTheDocument();
-
-  expect(
-    screen.getByRole("link", { name: "project-7" }),
-  ).toBeInTheDocument();
-});
-
-it("prevents selecting more repositories than the current limit", async () => {
-  const repos = Array.from({ length: 7 }, (_, index) => ({
-    id: index + 1,
-    name: `project-${index + 1}`,
-    description: "Project description",
-    html_url: `https://github.com/test/project-${index + 1}`,
-    stargazers_count: 7 - index,
-    fork: false,
-    language: "TypeScript",
-    updated_at: "2026-08-05T12:00:00Z",
-  }));
-
-  mockFetch.mockResolvedValueOnce({
-    ok: true,
-    json: async () => ({
-      user: {
-        login: "m-amroune",
-        avatar_url: "https://avatars.githubusercontent.com/u/1",
-        html_url: "https://github.com/m-amroune",
-        name: "Moustapha Amroune",
-        bio: null,
-        location: null,
-        company: null,
-      },
-      repos,
-    }),
-  } as Response);
-
-  renderHome();
-
-  fireEvent.change(
-    screen.getByPlaceholderText("Enter a GitHub username..."),
-    {
-      target: { value: "m-amroune" },
-    },
-  );
-
-  fireEvent.click(
-    screen.getByRole("button", { name: "Generate resume" }),
-  );
-
-  await screen.findByRole("link", { name: "project-1" });
-
-  expect(
-    screen.getByRole("checkbox", { name: "project-7" }),
-  ).toBeDisabled();
-});
-
-it("changes repository order in the resume", async () => {
-  const repos = Array.from({ length: 3 }, (_, index) => ({
-    id: index + 1,
-    name: `project-${index + 1}`,
-    description: "Project description",
-    html_url: `https://github.com/test/project-${index + 1}`,
-    stargazers_count: 3 - index,
-    fork: false,
-    language: "TypeScript",
-    updated_at: "2026-08-05T12:00:00Z",
-  }));
-
-  mockFetch.mockResolvedValueOnce({
-    ok: true,
-    json: async () => ({
-      user: {
-        login: "m-amroune",
-        avatar_url: "https://avatars.githubusercontent.com/u/1",
-        html_url: "https://github.com/m-amroune",
-        name: "Moustapha Amroune",
-        bio: null,
-        location: null,
-        company: null,
-      },
-      repos,
-    }),
-  } as Response);
-
-  renderHome();
-
-  fireEvent.change(
-    screen.getByPlaceholderText("Enter a GitHub username..."),
-    {
-      target: { value: "m-amroune" },
-    },
-  );
-
-  fireEvent.click(
-    screen.getByRole("button", { name: "Generate resume" }),
-  );
-
-  await screen.findByRole("link", { name: "project-1" });
-
-  fireEvent.click(
-    screen.getByRole("button", { name: "Move project-2 up" }),
-  );
-
-  const repoLinks = screen.getAllByRole("link").filter((link) =>
-    link.getAttribute("href")?.includes("github.com/test/project-"),
-  );
-
-  expect(repoLinks.map((link) => link.textContent)).toEqual([
-    "project-2",
-    "project-1",
-    "project-3",
-  ]);
-});
-
-it("computes skills from displayed repositories only", async () => {
-  const repos = Array.from({ length: 7 }, (_, index) => ({
-    id: index + 1,
-    name: `project-${index + 1}`,
-    description: "Project description",
-    html_url: `https://github.com/test/project-${index + 1}`,
-    stargazers_count: 7 - index,
-    fork: false,
-    language: "TypeScript",
-    updated_at: "2026-08-05T12:00:00Z",
-  }));
-
-  mockFetch.mockResolvedValueOnce({
-    ok: true,
-    json: async () => ({
-      user: {
-        login: "m-amroune",
-        avatar_url: "https://avatars.githubusercontent.com/u/1",
-        html_url: "https://github.com/m-amroune",
-        name: "Moustapha Amroune",
-        bio: null,
-        location: null,
-        company: null,
-      },
-      repos,
-    }),
-  } as Response);
-
-  renderHome();
-
-  fireEvent.change(
-    screen.getByPlaceholderText("Enter a GitHub username..."),
-    {
-      target: { value: "m-amroune" },
-    },
-  );
-
-  fireEvent.click(
-    screen.getByRole("button", { name: "Generate resume" }),
-  );
-
-  expect(
-    await screen.findByText("TypeScript (6)"),
-  ).toBeInTheDocument();
-
-  expect(
-    screen.queryByText("TypeScript (7)"),
-  ).not.toBeInTheDocument();
-});
-
-it("uses cached resume data for a recently searched username", async () => {
-  mockFetch
-    .mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({
-        user: {
-          login: "m-amroune",
-          avatar_url: "https://avatars.githubusercontent.com/u/1",
-          html_url: "https://github.com/m-amroune",
-          name: "Moustapha Amroune",
-          bio: null,
-          location: null,
-          company: null,
-        },
-        repos: [],
+    expect(
+      screen.getByRole("checkbox", {
+        name: "project-7",
       }),
-    } as Response)
-    .mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({
-        user: {
-          login: "facebook",
-          avatar_url: "https://avatars.githubusercontent.com/u/2",
-          html_url: "https://github.com/facebook",
-          name: "Facebook",
-          bio: null,
-          location: null,
-          company: null,
-        },
-        repos: [],
+    ).toBeDisabled();
+  });
+
+  it("changes repository order in the resume", async () => {
+    const repos = createRepos(3);
+
+    mockSuccessfulResponse(
+      createUser(),
+      repos,
+    );
+
+    renderHome();
+
+    submitUsername("m-amroune");
+
+    await screen.findByRole("link", {
+      name: "project-1",
+    });
+
+    openRepositoryPicker();
+
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: "Move project-2 up",
       }),
-    } as Response);
+    );
 
-  renderHome();
+    const repoLinks = screen
+      .getAllByRole("link")
+      .filter((link) =>
+        link
+          .getAttribute("href")
+          ?.includes("github.com/test/project-"),
+      );
 
-  fireEvent.change(
-    screen.getByPlaceholderText("Enter a GitHub username..."),
-    {
-      target: { value: "m-amroune" },
-    },
-  );
+    expect(
+      repoLinks.map((link) => link.textContent),
+    ).toEqual([
+      "project-2",
+      "project-1",
+      "project-3",
+    ]);
+  });
 
-  fireEvent.click(
-    screen.getByRole("button", { name: "Generate resume" }),
-  );
+  it("computes languages from all non-fork repositories", async () => {
+    const repos = createRepos(7, {
+      language: (index) =>
+        index === 6 ? "Python" : "TypeScript",
+    });
 
-  expect(
-    await screen.findByText("m-amroune"),
-  ).toBeInTheDocument();
-
-  fireEvent.change(
-    screen.getByPlaceholderText("Enter a GitHub username..."),
-    {
-      target: { value: "facebook" },
-    },
-  );
-
-  fireEvent.click(
-    screen.getByRole("button", { name: "Generate resume" }),
-  );
-
-  expect(
-    await screen.findByText("facebook"),
-  ).toBeInTheDocument();
-
-  fireEvent.change(
-    screen.getByPlaceholderText("Enter a GitHub username..."),
-    {
-      target: { value: "m-amroune" },
-    },
-  );
-
-  fireEvent.click(
-    screen.getByRole("button", { name: "Generate resume" }),
-  );
-
-  expect(
-    await screen.findByText("m-amroune"),
-  ).toBeInTheDocument();
-
-  expect(mockFetch).toHaveBeenCalledTimes(2);
-});
-
-it("changes repository order in the resume", async () => {
-  const repos = Array.from({ length: 3 }, (_, index) => ({
-    id: index + 1,
-    name: `project-${index + 1}`,
-    description: "Project description",
-    html_url: `https://github.com/test/project-${index + 1}`,
-    stargazers_count: 3 - index,
-    fork: false,
-    language: "TypeScript",
-    updated_at: "2026-08-05T12:00:00Z",
-  }));
-
-  mockFetch.mockResolvedValueOnce({
-    ok: true,
-    json: async () => ({
-      user: {
-        login: "m-amroune",
-        avatar_url: "https://avatars.githubusercontent.com/u/1",
-        html_url: "https://github.com/m-amroune",
-        name: "Moustapha Amroune",
-        bio: null,
-        location: null,
-        company: null,
-      },
+    mockSuccessfulResponse(
+      createUser(),
       repos,
-    }),
-  } as Response);
+    );
 
-  renderHome();
+    renderHome();
 
-  fireEvent.change(
-    screen.getByPlaceholderText("Enter a GitHub username..."),
-    {
-      target: { value: "m-amroune" },
-    },
-  );
+    submitUsername("m-amroune");
 
-  fireEvent.click(
-    screen.getByRole("button", { name: "Generate resume" }),
-  );
+    await screen.findByRole("link", {
+      name: "project-1",
+    });
 
-  await screen.findByRole("link", { name: "project-1" });
+    expect(
+      screen.queryByRole("link", {
+        name: "project-7",
+      }),
+    ).not.toBeInTheDocument();
 
-  fireEvent.click(
-    screen.getByRole("button", { name: "Move project-2 up" }),
-  );
+    const languagesSection = screen
+  .getByRole("heading", { name: "Languages" })
+  .closest("section");
 
-  const repoLinks = screen.getAllByRole("link").filter((link) =>
-    link.getAttribute("href")?.includes("github.com/test/project-"),
-  );
+expect(languagesSection).not.toBeNull();
 
-  expect(repoLinks.map((link) => link.textContent)).toEqual([
-    "project-2",
-    "project-1",
-    "project-3",
-  ]);
-});
+const languages = within(languagesSection!);
 
-it("computes skills from displayed repositories only", async () => {
-  const repos = Array.from({ length: 7 }, (_, index) => ({
-    id: index + 1,
-    name: `project-${index + 1}`,
-    description: "Project description",
-    html_url: `https://github.com/test/project-${index + 1}`,
-    stargazers_count: 7 - index,
-    fork: false,
-    language: "TypeScript",
-    updated_at: "2026-08-05T12:00:00Z",
-  }));
-
-  mockFetch.mockResolvedValueOnce({
-    ok: true,
-    json: async () => ({
-      user: {
-        login: "m-amroune",
-        avatar_url: "https://avatars.githubusercontent.com/u/1",
-        html_url: "https://github.com/m-amroune",
-        name: "Moustapha Amroune",
-        bio: null,
-        location: null,
-        company: null,
-      },
-      repos,
-    }),
-  } as Response);
-
-  renderHome();
-
-  fireEvent.change(
-    screen.getByPlaceholderText("Enter a GitHub username..."),
-    {
-      target: { value: "m-amroune" },
-    },
-  );
-
-  fireEvent.click(
-    screen.getByRole("button", { name: "Generate resume" }),
-  );
-
-  expect(
-    await screen.findByText("TypeScript (6)"),
-  ).toBeInTheDocument();
-
-  expect(
-    screen.queryByText("TypeScript (7)"),
-  ).not.toBeInTheDocument();
-});
-
-it("changes the number of repositories displayed", async () => {
-  const repos = Array.from({ length: 12 }, (_, index) => ({
-    id: index + 1,
-    name: `project-${index + 1}`,
-    description: "Project description",
-    html_url: `https://github.com/test/project-${index + 1}`,
-    stargazers_count: 12 - index,
-    fork: false,
-    language: "TypeScript",
-    updated_at: "2026-08-05T12:00:00Z",
-  }));
-
-  mockFetch.mockResolvedValueOnce({
-    ok: true,
-    json: async () => ({
-      user: {
-        login: "m-amroune",
-        avatar_url: "https://avatars.githubusercontent.com/u/1",
-        html_url: "https://github.com/m-amroune",
-        name: "Moustapha Amroune",
-        bio: null,
-        location: null,
-        company: null,
-      },
-      repos,
-    }),
-  } as Response);
-
-  renderHome();
-
-  fireEvent.change(
-    screen.getByPlaceholderText("Enter a GitHub username..."),
-    {
-      target: { value: "m-amroune" },
-    },
-  );
-
-  fireEvent.click(
-    screen.getByRole("button", { name: "Generate resume" }),
-  );
-
- await screen.findByRole("link", { name: "project-1" });
-
-  expect(
-  screen.queryByRole("link", { name: "project-10" }),
-).not.toBeInTheDocument();
-
-  fireEvent.change(
-    screen.getByLabelText("Repositories to display:"),
-    {
-      target: { value: "10" },
-    },
-  );
-
-  expect(
-  screen.getByRole("link", { name: "project-10" }),
+expect(
+  languages.getByText("TypeScript"),
 ).toBeInTheDocument();
-});
 
-it("resets repository choices for a new username while keeping the display limit", async () => {
-  const firstRepos = Array.from({ length: 12 }, (_, index) => ({
-    id: index + 1,
-    name: `project-${index + 1}`,
-    description: "Project description",
-    html_url: `https://github.com/test/project-${index + 1}`,
-    stargazers_count: 12 - index,
-    fork: false,
-    language: "TypeScript",
-    updated_at: "2026-08-05T12:00:00Z",
-  }));
+expect(
+  languages.getByText("86%"),
+).toBeInTheDocument();
 
-  const secondRepos = Array.from({ length: 12 }, (_, index) => ({
-    id: index + 1,
-    name: `facebook-project-${index + 1}`,
-    description: "Project description",
-    html_url: `https://github.com/facebook/project-${index + 1}`,
-    stargazers_count: 12 - index,
-    fork: false,
-    language: "JavaScript",
-    updated_at: "2026-08-05T12:00:00Z",
-  }));
+expect(
+  languages.getByText("Python"),
+).toBeInTheDocument();
 
-  mockFetch
-    .mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({
-        user: {
-          login: "m-amroune",
-          avatar_url: "https://avatars.githubusercontent.com/u/1",
-          html_url: "https://github.com/m-amroune",
-          name: "Moustapha Amroune",
-          bio: null,
-          location: null,
-          company: null,
-        },
-        repos: firstRepos,
-      }),
-    } as Response)
-    .mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({
-        user: {
-          login: "facebook",
-          avatar_url: "https://avatars.githubusercontent.com/u/2",
-          html_url: "https://github.com/facebook",
-          name: "Facebook",
-          bio: null,
-          location: null,
-          company: null,
-        },
-        repos: secondRepos,
-      }),
-    } as Response);
-
-  renderHome();
-
-  const firstSearchInput = screen.getByPlaceholderText(
-    "Enter a GitHub username...",
-  );
-
-  fireEvent.change(firstSearchInput, {
-    target: { value: "m-amroune" },
+expect(
+  languages.getByText("14%"),
+).toBeInTheDocument();
   });
 
-  fireEvent.submit(firstSearchInput.closest("form")!);
+  it("uses cached resume data for a recently searched username", async () => {
+    mockFetch
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          user: createUser(),
+          repos: [],
+        }),
+      } as Response)
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          user: createUser({
+            login: "google",
+            avatar_url:
+              "https://avatars.githubusercontent.com/u/2",
+            html_url: "https://github.com/google",
+            name: "Google",
+            public_repos: 100,
+          }),
+          repos: [],
+        }),
+      } as Response);
 
-  await screen.findByRole("link", {
-    name: "project-1",
+    renderHome();
+
+    submitUsername("m-amroune");
+
+    expect(
+      await screen.findByText("m-amroune"),
+    ).toBeInTheDocument();
+
+    submitUsername("google");
+
+    expect(
+      await screen.findByText("google"),
+    ).toBeInTheDocument();
+
+    submitUsername("m-amroune");
+
+    expect(
+      await screen.findByText("m-amroune"),
+    ).toBeInTheDocument();
+
+    expect(mockFetch).toHaveBeenCalledTimes(2);
   });
 
-  fireEvent.change(
-    screen.getByLabelText("Repositories to display:"),
-    {
-      target: { value: "10" },
-    },
-  );
+  it("changes the number of repositories displayed", async () => {
+    const repos = createRepos(12);
 
-  fireEvent.click(
-    screen.getByRole("button", {
-      name: "Move project-2 up",
-    }),
-  );
-
-  fireEvent.click(
-    screen.getByLabelText("project-1"),
-  );
-
-  fireEvent.click(
-    screen.getByLabelText("project-11"),
-  );
-
-  const secondSearchInput = screen.getByPlaceholderText(
-    "Enter a GitHub username...",
-  );
-
-  fireEvent.change(secondSearchInput, {
-    target: { value: "facebook" },
-  });
-
-  expect(secondSearchInput).toHaveValue("facebook");
-
-  fireEvent.submit(secondSearchInput.closest("form")!);
-
-  await screen.findByRole("link", {
-    name: "facebook-project-1",
-  });
-
-  expect(
-    screen.getByLabelText("Repositories to display:"),
-  ).toHaveValue("10");
-
-  const facebookRepoLinks = screen
-    .getAllByRole("link")
-    .filter((link) =>
-      link
-        .getAttribute("href")
-        ?.includes("github.com/facebook/project-"),
+    mockSuccessfulResponse(
+      createUser(),
+      repos,
     );
 
-  expect(facebookRepoLinks).toHaveLength(10);
+    renderHome();
 
-  expect(
-    facebookRepoLinks.map((link) => link.textContent),
-  ).toEqual([
-    "facebook-project-1",
-    "facebook-project-2",
-    "facebook-project-3",
-    "facebook-project-4",
-    "facebook-project-5",
-    "facebook-project-6",
-    "facebook-project-7",
-    "facebook-project-8",
-    "facebook-project-9",
-    "facebook-project-10",
-  ]);
+    submitUsername("m-amroune");
+
+    await screen.findByRole("link", {
+      name: "project-1",
+    });
+
+    expect(
+      screen.queryByRole("link", {
+        name: "project-10",
+      }),
+    ).not.toBeInTheDocument();
+
+    fireEvent.change(
+      screen.getByRole("combobox"),
+      {
+        target: { value: "10" },
+      },
+    );
+
+    expect(
+      screen.getByRole("link", {
+        name: "project-10",
+      }),
+    ).toBeInTheDocument();
+  });
+
+  it("resets repository choices for a new username while keeping the display limit", async () => {
+    const firstRepos = createRepos(12);
+
+    const googleRepos = createRepos(12, {
+      owner: "google",
+      prefix: "google-project",
+      language: "JavaScript",
+    });
+
+    mockFetch
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          user: createUser(),
+          repos: firstRepos,
+        }),
+      } as Response)
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          user: createUser({
+            login: "google",
+            avatar_url:
+              "https://avatars.githubusercontent.com/u/2",
+            html_url: "https://github.com/google",
+            name: "Google",
+            public_repos: 100,
+          }),
+          repos: googleRepos,
+        }),
+      } as Response);
+
+    renderHome();
+
+    submitUsername("m-amroune");
+
+    await screen.findByRole("link", {
+      name: "project-1",
+    });
+
+    fireEvent.change(
+      screen.getByRole("combobox"),
+      {
+        target: { value: "10" },
+      },
+    );
+
+    openRepositoryPicker();
+
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: "Move project-2 up",
+      }),
+    );
+
+    fireEvent.click(
+      screen.getByRole("checkbox", {
+        name: "project-1",
+      }),
+    );
+
+    fireEvent.click(
+      screen.getByRole("checkbox", {
+        name: "project-11",
+      }),
+    );
+
+    submitUsername("google");
+
+    await screen.findByRole("link", {
+      name: "google-project-1",
+    });
+
+    expect(
+      screen.getByRole("combobox"),
+    ).toHaveValue("10");
+
+    const googleRepoLinks = screen
+      .getAllByRole("link")
+      .filter((link) =>
+        link
+          .getAttribute("href")
+          ?.includes(
+            "github.com/google/google-project-",
+          ),
+      );
+
+    expect(googleRepoLinks).toHaveLength(10);
+
+    expect(
+      googleRepoLinks.map(
+        (link) => link.textContent,
+      ),
+    ).toEqual([
+      "google-project-1",
+      "google-project-2",
+      "google-project-3",
+      "google-project-4",
+      "google-project-5",
+      "google-project-6",
+      "google-project-7",
+      "google-project-8",
+      "google-project-9",
+      "google-project-10",
+    ]);
+  });
 });
-
-})
-
-
