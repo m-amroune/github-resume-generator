@@ -29,9 +29,10 @@ The project focuses on:
 - Fetch public GitHub profile data and up to 100 repositories
 - Automatically select the most relevant non-fork repositories
 - Choose how many repositories to display: 6, 10, 15 or 20
-- Manually include or exclude repositories
-- Reorder selected repositories
-- Compute top languages from the repositories currently displayed
+- Manually include, exclude and reorder repositories
+- Display GitHub activity metrics: public repositories, total stars, total forks and repositories updated in the last 12 months
+- Compute global language percentages from all retrieved non-fork repositories
+- Display repository stars, forks, main language and last update date
 - Cache recent profile searches with TanStack Query
 - Handle invalid usernames, API errors and GitHub rate limits
 - Generate a printable resume using the browser print function
